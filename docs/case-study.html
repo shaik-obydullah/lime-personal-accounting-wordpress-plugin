@@ -1,0 +1,359 @@
+<h2><strong>Lime Personal Accounting &mdash; A WordPress Plugin Case Study</strong></h2>
+
+<p><em>Building a lightweight, self-hosted personal accounting system inside WordPress</em></p>
+
+<hr>
+
+<h3><strong>1. The Problem</strong></h3>
+
+<p>Most personal finance tools are either cloud-based SaaS products (with recurring costs and privacy concerns) or overly complex desktop applications. For freelancers, small business owners, and individuals who already manage their digital presence through WordPress, there was no simple, integrated solution for tracking day-to-day income and expenses without leaving their familiar dashboard.</p>
+
+<p>The goal was to build a <strong>self-hosted, privacy-first personal accounting plugin</strong> that lives entirely within the WordPress admin panel &mdash; no external APIs, no third-party tracking, no subscription fees.</p>
+
+<hr>
+
+<h3><strong>2. Technology Stack</strong></h3>
+
+<table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+<tbody>
+<tr style="background-color: #f0f4f8;">
+<td style="padding: 10px 14px; border: 1px solid #d1d9e0; font-weight: bold; width: 30%;">Layer</td>
+<td style="padding: 10px 14px; border: 1px solid #d1d9e0; font-weight: bold;">Technology</td>
+</tr>
+<tr>
+<td style="padding: 10px 14px; border: 1px solid #d1d9e0;">Runtime</td>
+<td style="padding: 10px 14px; border: 1px solid #d1d9e0;">PHP 8.5 on Apache</td>
+</tr>
+<tr style="background-color: #f0f4f8;">
+<td style="padding: 10px 14px; border: 1px solid #d1d9e0;">CMS</td>
+<td style="padding: 10px 14px; border: 1px solid #d1d9e0;">WordPress (latest)</td>
+</tr>
+<tr>
+<td style="padding: 10px 14px; border: 1px solid #d1d9e0;">Database</td>
+<td style="padding: 10px 14px; border: 1px solid #d1d9e0;">MySQL 8.0</td>
+</tr>
+<tr style="background-color: #f0f4f8;">
+<td style="padding: 10px 14px; border: 1px solid #d1d9e0;">Frontend</td>
+<td style="padding: 10px 14px; border: 1px solid #d1d9e0;">jQuery (bundled with WordPress), custom CSS</td>
+</tr>
+<tr>
+<td style="padding: 10px 14px; border: 1px solid #d1d9e0;">Infrastructure</td>
+<td style="padding: 10px 14px; border: 1px solid #d1d9e0;">Docker Compose (3 containers)</td>
+</tr>
+<tr style="background-color: #f0f4f8;">
+<td style="padding: 10px 14px; border: 1px solid #d1d9e0;">DB Management</td>
+<td style="padding: 10px 14px; border: 1px solid #d1d9e0;">phpMyAdmin</td>
+</tr>
+</tbody>
+</table>
+
+<h3><strong>3. Architecture Overview</strong></h3>
+
+<p>The entire system runs as three Docker containers orchestrated via <code>docker-compose.yml</code>:</p>
+
+<ul>
+<li><strong>lime_lpa_app</strong> &mdash; WordPress on PHP 8.5/Apache, serving the plugin on port <code>8090</code></li>
+<li><strong>lime_lpa_db</strong> &mdash; MySQL 8.0 with persistent volume storage</li>
+<li><strong>lime_lpa_phpmyadmin</strong> &mdash; phpMyAdmin on port <code>8091</code> for direct database inspection</li>
+</ul>
+
+<p>The plugin code is volume-mounted directly into the WordPress container, enabling live development without rebuilds.</p>
+
+<hr>
+
+<h3><strong>4. Database Design</strong></h3>
+
+<p>The plugin creates <strong>6 custom tables</strong> with the <code>lpa_</code> prefix, all following a consistent schema pattern with soft-delete support:</p>
+
+<table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+<tbody>
+<tr style="background-color: #1a1a2e; color: #ffffff;">
+<td style="padding: 10px 14px; border: 1px solid #333; font-weight: bold;">Table</td>
+<td style="padding: 10px 14px; border: 1px solid #333; font-weight: bold;">Purpose</td>
+<td style="padding: 10px 14px; border: 1px solid #333; font-weight: bold;">Key Columns</td>
+</tr>
+<tr>
+<td style="padding: 10px 14px; border: 1px solid #d1d9e0;"><code>lpa_wallets</code></td>
+<td style="padding: 10px 14px; border: 1px solid #d1d9e0;">Financial accounts/categories</td>
+<td style="padding: 10px 14px; border: 1px solid #d1d9e0;">name, category (income/expense)</td>
+</tr>
+<tr style="background-color: #f8fafc;">
+<td style="padding: 10px 14px; border: 1px solid #d1d9e0;"><code>lpa_incomes</code></td>
+<td style="padding: 10px 14px; border: 1px solid #d1d9e0;">Income transactions</td>
+<td style="padding: 10px 14px; border: 1px solid #d1d9e0;">fk_wallet_id, amount, description, currency</td>
+</tr>
+<tr>
+<td style="padding: 10px 14px; border: 1px solid #d1d9e0;"><code>lpa_expenses</code></td>
+<td style="padding: 10px 14px; border: 1px solid #d1d9e0;">Expense transactions</td>
+<td style="padding: 10px 14px; border: 1px solid #d1d9e0;">fk_wallet_id, amount, description, currency</td>
+</tr>
+<tr style="background-color: #f8fafc;">
+<td style="padding: 10px 14px; border: 1px solid #d1d9e0;"><code>lpa_cashbook</code></td>
+<td style="padding: 10px 14px; border: 1px solid #d1d9e0;">Auto-generated transaction ledger</td>
+<td style="padding: 10px 14px; border: 1px solid #d1d9e0;">in_amount, out_amount, fk_reference_id, reference_type</td>
+</tr>
+<tr>
+<td style="padding: 10px 14px; border: 1px solid #d1d9e0;"><code>lpa_activities</code></td>
+<td style="padding: 10px 14px; border: 1px solid #d1d9e0;">Audit trail</td>
+<td style="padding: 10px 14px; border: 1px solid #d1d9e0;">type, name, ip_address, geo fields</td>
+</tr>
+<tr style="background-color: #f8fafc;">
+<td style="padding: 10px 14px; border: 1px solid #d1d9e0;"><code>lpa_configurations</code></td>
+<td style="padding: 10px 14px; border: 1px solid #d1d9e0;">Plugin settings</td>
+<td style="padding: 10px 14px; border: 1px solid #d1d9e0;">name (unique), setting (JSON text)</td>
+</tr>
+</tbody>
+</table>
+
+<p><strong>Design Decisions:</strong></p>
+
+<ul>
+<li><strong>Soft Deletes:</strong> Every table includes a <code>deleted_at</code> column. Records are never physically removed; they are marked with a timestamp. This ensures data recoverability and maintains referential integrity in the cashbook.</li>
+<li><strong>Auto-timestamps:</strong> All tables track <code>created_at</code>, <code>created_by</code>, <code>updated_at</code>, and <code>updated_by</code> for full audit trails.</li>
+<li><strong>Cashbook Normalization:</strong> Income and expense entries automatically generate corresponding cashbook records, creating a single unified ledger without manual entry.</li>
+</ul>
+
+<hr>
+
+<h3><strong>5. Plugin Architecture</strong></h3>
+
+<p>The plugin follows a modular WordPress architecture with clear separation of concerns:</p>
+
+<h4><strong>5.1 Main Entry Point</strong> (<code>lime-personal-accounting.php</code>)</h4>
+
+<p>The bootstrap file defines constants, loads modules, registers activation/deactivation hooks, and wires up asset enqueuing. On activation, it calls <code>lpa_create_tables()</code> to set up the database schema via <code>dbDelta()</code>.</p>
+
+<h4><strong>5.2 Admin Menu System</strong> (<code>includes/admin-menu.php</code>)</h4>
+
+<p>Registers a top-level <strong>"Accounting"</strong> menu with 7 subpages: Dashboard, Wallets, Incomes, Expenses, Cashbook, Activities, and Settings. All pages require the <code>manage_options</code> capability.</p>
+
+<h4><strong>5.3 AJAX Router</strong> (<code>includes/ajax-handlers.php</code>)</h4>
+
+<p>A single AJAX endpoint (<code>wp_ajax_lpa_action</code>) routes all requests through a switch-based dispatcher. The router handles 12 actions across wallets, incomes, expenses, cashbook, activities, and settings. Security is enforced via nonce verification and capability checks on every request.</p>
+
+<h4><strong>5.4 Page Controllers</strong> (<code>includes/pages.php</code>)</h4>
+
+<p>Each page function fetches necessary data (dashboard computes totals) and includes the corresponding view template.</p>
+
+<h4><strong>5.5 View Templates</strong> (<code>includes/views/</code>)</h4>
+
+<p>Minimal PHP templates that output HTML structure with CSS classes. Data is loaded client-side via AJAX, keeping templates clean and enabling dynamic updates without page reloads.</p>
+
+<hr>
+
+<h3><strong>6. Key Features Deep Dive</strong></h3>
+
+<h4><strong>6.1 Wallet Management</strong></h4>
+
+<p>Wallets serve as the foundational entity. Each wallet has a <strong>category</strong> &mdash; either <code>income</code> or <code>expense</code> &mdash; which determines where it appears in dropdown selectors. When creating an income, only wallets categorized as "income" are shown, and vice versa. This prevents misallocation of transactions.</p>
+
+<h4><strong>6.2 Income &amp; Expense Tracking</strong></h4>
+
+<p>Both income and expense forms capture: wallet (filtered by category), amount (decimal with 2 places), description (free-text), and currency (text field, defaults to USD). The system supports multi-currency tracking without conversion &mdash; each transaction records its original currency.</p>
+
+<h4><strong>6.3 Automatic Cashbook Generation</strong></h4>
+
+<p>This is the plugin's core innovation. When a new income is created:</p>
+
+<ol>
+<li>A record is inserted into <code>lpa_incomes</code></li>
+<li>A corresponding record is automatically inserted into <code>lpa_cashbook</code> with <code>in_amount</code> populated and <code>reference_type = 'income'</code></li>
+</ol>
+
+<p>When an expense is created, the same dual-write happens with <code>out_amount</code>. When either is deleted, both records are soft-deleted simultaneously. This ensures the cashbook always reflects the true state of all transactions.</p>
+
+<h4><strong>6.4 Activity Logging</strong></h4>
+
+<p>Every income/expense creation triggers <code>lpa_log_activity()</code>, which records the admin user, action type (<code>success</code> for income, <code>warning</code> for expense), description, IP address, and timestamp. The activities page shows the last 50 entries.</p>
+
+<h4><strong>6.5 Dashboard Analytics</strong></h4>
+
+<p>The dashboard computes three key metrics from raw SQL queries:</p>
+
+<ul>
+<li><strong>Total Income</strong> &mdash; Sum of all non-deleted income records</li>
+<li><strong>Total Expense</strong> &mdash; Sum of all non-deleted expense records</li>
+<li><strong>Balance</strong> &mdash; Income minus Expense</li>
+</ul>
+
+<p>Transaction counts and wallet counts are also displayed as supplementary context.</p>
+
+<hr>
+
+<h3><strong>7. Frontend Implementation</strong></h3>
+
+<p>The frontend uses a <strong>jQuery SPA-like pattern</strong> within the WordPress admin context:</p>
+
+<h4><strong>7.1 AJAX Helper</strong></h4>
+
+<p>A centralized <code>lpaPost()</code> function handles all server communication, automatically including the action type, nonce, and data payload. Error handling is built-in with toast notifications.</p>
+
+<h4><strong>7.2 Modal System</strong></h4>
+
+<p>Create/edit operations use fixed-position modals with overlay. The same modal serves both create and edit &mdash; the title and hidden ID field are updated dynamically. Wallet selection dropdowns are populated in real-time from the server.</p>
+
+<h4><strong>7.3 Table Rendering</strong></h4>
+
+<p>Data tables are built client-side from AJAX responses using template strings. Each table includes inline action buttons (Edit, Delete) with confirmation dialogs. Empty states show helpful prompts when no data exists.</p>
+
+<h4><strong>7.4 Toast Notifications</strong></h4>
+
+<p>Non-intrusive toast messages appear in the bottom-right corner for 3 seconds, using CSS transitions for smooth enter/exit animations. Color-coded by type (green for success, red for error).</p>
+
+<h4><strong>7.5 Auto-Initialization</strong></h4>
+
+<p>On <code>document.ready</code>, the script detects which page is active by checking for specific DOM element IDs and loads the corresponding data automatically. No manual initialization code is needed per page.</p>
+
+<hr>
+
+<h3><strong>8. Security Measures</strong></h3>
+
+<ul>
+<li><strong>Nonce Verification:</strong> Every AJAX request must include a valid <code>lpa_nonce</code> token, verified server-side via <code>check_ajax_referer()</code></li>
+<li><strong>Capability Checks:</strong> All operations require <code>manage_options</code> capability (admin-level access)</li>
+<li><strong>Input Sanitization:</strong> All user inputs are sanitized using WordPress functions: <code>sanitize_text_field()</code>, <code>sanitize_textarea_field()</code>, <code>absint()</code>, <code>floatval()</code></li>
+<li><strong>ABSPATH Checks:</strong> Every PHP file begins with <code>if (!defined('ABSPATH')) exit;</code> to prevent direct access</li>
+<li><strong>Parameterized Queries:</strong> All database operations use the WordPress <code>$wpdb</code> API with prepared statements, preventing SQL injection</li>
+</ul>
+
+<hr>
+
+<h3><strong>9. CSS Design System</strong></h3>
+
+<p>The plugin uses a custom design system with 400+ lines of CSS built around these principles:</p>
+
+<ul>
+<li><strong>CSS Grid</strong> for responsive stat cards (auto-fit with minmax)</li>
+<li><strong>CSS Variables via class-based theming</strong> &mdash; consistent color palette (green for income, red for expense, blue for balance)</li>
+<li><strong>12px border-radius</strong> throughout for a modern, rounded aesthetic</li>
+<li><strong>Subtle shadows</strong> (<code>0 2px 8px rgba(0,0,0,0.06)</code>) for depth without heaviness</li>
+<li><strong>Mobile-first responsive</strong> &mdash; tables scroll horizontally on small screens, grid collapses to single column</li>
+<li><strong>Badge system</strong> &mdash; pill-shaped labels for status indicators (income, expense, success, warning, error)</li>
+</ul>
+
+<hr>
+
+<h3><strong>10. Docker Deployment</strong></h3>
+
+<p>The system is containerized with <code>docker-compose</code> for one-command deployment:</p>
+
+<pre><code>docker-compose up -d</code></pre>
+
+<p>This starts all three services. The plugin source code is volume-mounted from the host, meaning any code change is reflected immediately without rebuilding the container. The MySQL data persists in a local <code>db_data/</code> directory.</p>
+
+<p><strong>Ports:</strong></p>
+
+<ul>
+<li><code>8090</code> &mdash; WordPress + Plugin</li>
+<li><code>8091</code> &mdash; phpMyAdmin</li>
+</ul>
+
+<hr>
+
+<h3><strong>11. Code Metrics</strong></h3>
+
+<table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+<tbody>
+<tr style="background-color: #f0f4f8;">
+<td style="padding: 10px 14px; border: 1px solid #d1d9e0; font-weight: bold;">Metric</td>
+<td style="padding: 10px 14px; border: 1px solid #d1d9e0; font-weight: bold;">Value</td>
+</tr>
+<tr>
+<td style="padding: 10px 14px; border: 1px solid #d1d9e0;">Total PHP Files</td>
+<td style="padding: 10px 14px; border: 1px solid #d1d9e0;">9</td>
+</tr>
+<tr style="background-color: #f8fafc;">
+<td style="padding: 10px 14px; border: 1px solid #d1d9e0;">PHP Lines of Code</td>
+<td style="padding: 10px 14px; border: 1px solid #d1d9e0;">~590</td>
+</tr>
+<tr>
+<td style="padding: 10px 14px; border: 1px solid #d1d9e0;">JavaScript</td>
+<td style="padding: 10px 14px; border: 1px solid #d1d9e0;">351 lines (single file)</td>
+</tr>
+<tr style="background-color: #f8fafc;">
+<td style="padding: 10px 14px; border: 1px solid #d1d9e0;">CSS</td>
+<td style="padding: 10px 14px; border: 1px solid #d1d9e0;">426 lines</td>
+</tr>
+<tr>
+<td style="padding: 10px 14px; border: 1px solid #d1d9e0;">Database Tables</td>
+<td style="padding: 10px 14px; border: 1px solid #d1d9e0;">6</td>
+</tr>
+<tr style="background-color: #f8fafc;">
+<td style="padding: 10px 14px; border: 1px solid #d1d9e0;">AJAX Endpoints</td>
+<td style="padding: 10px 14px; border: 1px solid #d1d9e0;">12 (single router)</td>
+</tr>
+<tr>
+<td style="padding: 10px 14px; border: 1px solid #d1d9e0;">Admin Pages</td>
+<td style="padding: 10px 14px; border: 1px solid #d1d9e0;">7</td>
+</tr>
+<tr style="background-color: #f8fafc;">
+<td style="padding: 10px 14px; border: 1px solid #d1d9e0;">External Dependencies</td>
+<td style="padding: 10px 14px; border: 1px solid #d1d9e0;">0 (jQuery included with WP)</td>
+</tr>
+</tbody>
+</table>
+
+<hr>
+
+<h3><strong>12. Challenges &amp; Solutions</strong></h3>
+
+<table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+<tbody>
+<tr style="background-color: #1a1a2e; color: #ffffff;">
+<td style="padding: 10px 14px; border: 1px solid #333; font-weight: bold;">Challenge</td>
+<td style="padding: 10px 14px; border: 1px solid #333; font-weight: bold;">Solution</td>
+</tr>
+<tr>
+<td style="padding: 10px 14px; border: 1px solid #d1d9e0;">Maintaining a unified ledger alongside individual transactions</td>
+<td style="padding: 10px 14px; border: 1px solid #d1d9e0;">Dual-write pattern: every income/expense save also writes to cashbook in the same request</td>
+</tr>
+<tr style="background-color: #f8fafc;">
+<td style="padding: 10px 14px; border: 1px solid #d1d9e0;">Data integrity on deletion</td>
+<td style="padding: 10px 14px; border: 1px solid #d1d9e0;">Soft deletes with cascading: deleting income also soft-deletes the linked cashbook entry</td>
+</tr>
+<tr>
+<td style="padding: 10px 14px; border: 1px solid #d1d9e0;">Preventing wallet misuse (income wallet for expenses)</td>
+<td style="padding: 10px 14px; border: 1px solid #d1d9e0;">Client-side filtering: wallet dropdowns only show wallets matching the current form's category</td>
+</tr>
+<tr style="background-color: #f8fafc;">
+<td style="padding: 10px 14px; border: 1px solid #d1d9e0;">Page-specific asset loading</td>
+<td style="padding: 10px 14px; border: 1px solid #d1d9e0;"><code>admin_enqueue_scripts</code> hook checks current screen ID for <code>lpa_</code> prefix before loading</td>
+</tr>
+<tr>
+<td style="padding: 10px 14px; border: 1px solid #d1d9e0;">AJAX security in WordPress</td>
+<td style="padding: 10px 14px; border: 1px solid #d1d9e0;">Combined nonce verification + capability check + input sanitization on every request</td>
+</tr>
+</tbody>
+</table>
+
+<hr>
+
+<h3><strong>13. Future Enhancements</strong></h3>
+
+<ul>
+<li><strong>CSV/PDF Export</strong> &mdash; Generate reports from cashbook data</li>
+<li><strong>Date Range Filtering</strong> &mdash; Filter transactions by month/year</li>
+<li><strong>Budget Alerts</strong> &mdash; Set spending limits per wallet category</li>
+<li><strong>Recurring Transactions</strong> &mdash; Auto-generate monthly income/expense entries</li>
+<li><strong>Multi-user Support</strong> &mdash; Per-user wallet isolation with role-based access</li>
+<li><strong>Currency Conversion</strong> &mdash; Real-time exchange rates for multi-currency portfolios</li>
+<li><strong>Charts &amp; Graphs</strong> &mdash; Visual spending breakdowns using Chart.js or similar</li>
+<li><strong>REST API</strong> &mdash; Enable external app integrations (mobile, desktop)</li>
+</ul>
+
+<hr>
+
+<h3><strong>14. Conclusion</strong></h3>
+
+<p>Lime Personal Accounting demonstrates that a fully functional personal finance tool can be built as a lightweight WordPress plugin with zero external dependencies. By leveraging WordPress's built-in capabilities (admin UI, AJAX, database abstraction, user management) and adding a clean frontend layer, the plugin delivers a complete accounting experience that is:</p>
+
+<ul>
+<li><strong>Self-hosted</strong> &mdash; all data stays on your server</li>
+<li><strong>Privacy-first</strong> &mdash; no third-party tracking or cloud dependencies</li>
+<li><strong>Zero-cost</strong> &mdash; no subscription fees or premium tiers</li>
+<li><strong>Extensible</strong> &mdash; clean architecture makes adding features straightforward</li>
+</ul>
+
+<p>The Docker-based deployment ensures reproducibility across environments, making it equally suitable for personal use, client projects, or as a foundation for more complex financial applications.</p>
+
+<p><em>Author: Obydullah &bull; <a href="https://obydullah.com">obydullah.com</a></em></p>
