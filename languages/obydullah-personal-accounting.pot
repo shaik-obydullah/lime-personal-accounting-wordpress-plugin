@@ -1,0 +1,250 @@
+# Copyright (C) 2026 Obydullah
+# This file is distributed under the GPL-2.0-or-later.
+msgid ""
+msgstr ""
+"Project-Id-Version: Obydullah Personal Accounting 1.0.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/obydullah-personal-accounting\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-09-13T20:49:26+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.12.0\n"
+"X-Domain: obydullah-personal-accounting\n"
+
+#. Plugin Name of the plugin
+#: obydullah-personal-accounting.php
+#: includes/admin-menu.php:8
+msgid "Obydullah Personal Accounting"
+msgstr ""
+
+#. Plugin URI of the plugin
+#. Author URI of the plugin
+#: obydullah-personal-accounting.php
+msgid "https://obydullah.com"
+msgstr ""
+
+#. Description of the plugin
+#: obydullah-personal-accounting.php
+msgid "Track personal income, expenses, wallets, and automatic cashbook ledgers - all inside your WordPress admin."
+msgstr ""
+
+#. Author of the plugin
+#: obydullah-personal-accounting.php
+msgid "Obydullah"
+msgstr ""
+
+#: includes/admin-menu.php:9
+msgid "Accounting"
+msgstr ""
+
+#: includes/admin-menu.php:17
+#: includes/views/dashboard.php:5
+msgid "Dashboard"
+msgstr ""
+
+#: includes/admin-menu.php:18
+#: includes/views/wallets.php:6
+msgid "Wallets"
+msgstr ""
+
+#: includes/admin-menu.php:19
+#: includes/views/incomes.php:6
+msgid "Incomes"
+msgstr ""
+
+#: includes/admin-menu.php:20
+#: includes/views/expenses.php:6
+msgid "Expenses"
+msgstr ""
+
+#: includes/admin-menu.php:21
+#: includes/views/cashbook.php:5
+msgid "Cashbook"
+msgstr ""
+
+#: includes/admin-menu.php:22
+#: includes/views/activities.php:5
+msgid "Activities"
+msgstr ""
+
+#: includes/admin-menu.php:23
+#: includes/views/settings.php:5
+msgid "Settings"
+msgstr ""
+
+#: includes/ajax-handlers.php:8
+msgid "Unauthorized"
+msgstr ""
+
+#: includes/ajax-handlers.php:52
+msgid "Unknown action"
+msgstr ""
+
+#: includes/ajax-handlers.php:85
+msgid "Wallet updated"
+msgstr ""
+
+#: includes/ajax-handlers.php:93
+msgid "Wallet created"
+msgstr ""
+
+#: includes/ajax-handlers.php:102
+msgid "Wallet deleted"
+msgstr ""
+
+#: includes/ajax-handlers.php:144
+msgid "Income updated"
+msgstr ""
+
+#. translators: %s: income amount.
+#: includes/ajax-handlers.php:165
+#, php-format
+msgid "Income Added: %s"
+msgstr ""
+
+#: includes/ajax-handlers.php:167
+msgid "Income created"
+msgstr ""
+
+#: includes/ajax-handlers.php:181
+msgid "Income deleted"
+msgstr ""
+
+#: includes/ajax-handlers.php:223
+msgid "Expense updated"
+msgstr ""
+
+#. translators: %s: expense amount.
+#: includes/ajax-handlers.php:244
+#, php-format
+msgid "Expense Added: %s"
+msgstr ""
+
+#: includes/ajax-handlers.php:246
+msgid "Expense created"
+msgstr ""
+
+#: includes/ajax-handlers.php:260
+msgid "Expense deleted"
+msgstr ""
+
+#: includes/views/dashboard.php:11
+msgid "Total Income"
+msgstr ""
+
+#. translators: %d: number of transactions.
+#: includes/views/dashboard.php:12
+#: includes/views/dashboard.php:20
+#, php-format
+msgid "%d transaction"
+msgid_plural "%d transactions"
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/views/dashboard.php:19
+msgid "Total Expense"
+msgstr ""
+
+#: includes/views/dashboard.php:27
+msgid "Balance"
+msgstr ""
+
+#. translators: %d: number of wallets.
+#: includes/views/dashboard.php:28
+#, php-format
+msgid "%d wallet"
+msgid_plural "%d wallets"
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/views/expenses.php:7
+#: includes/views/expenses.php:16
+msgid "Add Expense"
+msgstr ""
+
+#: includes/views/expenses.php:22
+#: includes/views/incomes.php:22
+msgid "Wallet"
+msgstr ""
+
+#: includes/views/expenses.php:24
+#: includes/views/incomes.php:24
+msgid "Select wallet"
+msgstr ""
+
+#: includes/views/expenses.php:28
+#: includes/views/incomes.php:28
+msgid "Amount"
+msgstr ""
+
+#: includes/views/expenses.php:32
+#: includes/views/incomes.php:32
+msgid "Description"
+msgstr ""
+
+#: includes/views/expenses.php:33
+msgid "Expense description"
+msgstr ""
+
+#: includes/views/expenses.php:36
+#: includes/views/incomes.php:36
+msgid "Currency"
+msgstr ""
+
+#: includes/views/expenses.php:37
+#: includes/views/incomes.php:37
+msgid "e.g. USD, BDT"
+msgstr ""
+
+#: includes/views/expenses.php:40
+#: includes/views/incomes.php:40
+#: includes/views/wallets.php:34
+msgid "Cancel"
+msgstr ""
+
+#: includes/views/expenses.php:41
+#: includes/views/incomes.php:41
+#: includes/views/wallets.php:35
+msgid "Save"
+msgstr ""
+
+#: includes/views/incomes.php:7
+#: includes/views/incomes.php:16
+msgid "Add Income"
+msgstr ""
+
+#: includes/views/incomes.php:33
+msgid "Income description"
+msgstr ""
+
+#: includes/views/wallets.php:7
+#: includes/views/wallets.php:16
+msgid "Add Wallet"
+msgstr ""
+
+#: includes/views/wallets.php:22
+msgid "Name"
+msgstr ""
+
+#: includes/views/wallets.php:23
+msgid "e.g. Salary, Food, Rent"
+msgstr ""
+
+#: includes/views/wallets.php:26
+msgid "Category"
+msgstr ""
+
+#: includes/views/wallets.php:28
+msgid "Select category"
+msgstr ""
+
+#: includes/views/wallets.php:29
+msgid "Income"
+msgstr ""
+
+#: includes/views/wallets.php:30
+msgid "Expense"
+msgstr ""

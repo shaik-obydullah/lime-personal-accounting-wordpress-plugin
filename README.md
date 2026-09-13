@@ -1,4 +1,4 @@
-# Lime Personal Accounting
+# Obydullah Personal Accounting
 
 A lightweight, self-hosted personal accounting plugin for WordPress. Track income, expenses, wallets, and generate an automatic cashbook ledger.
 
@@ -37,8 +37,8 @@ A lightweight, self-hosted personal accounting plugin for WordPress. Track incom
 ### Deploy
 
 ```bash
-git clone https://github.com/obydullah/lime-lpa-docker.git
-cd lime-lpa-docker
+git clone https://github.com/obydullah/lime-opa-docker.git
+cd lime-opa-docker
 docker-compose up -d
 ```
 
@@ -61,7 +61,7 @@ docker-compose up -d
 
 ## Database Schema
 
-All tables use the `lpa_` prefix and include soft-delete support (`deleted_at` column).
+All tables use the `opa_` prefix and include soft-delete support (`deleted_at` column).
 
 ```
 ┌──────────────┐     ┌──────────────┐
@@ -91,12 +91,12 @@ All tables use the `lpa_` prefix and include soft-delete support (`deleted_at` c
 
 | Table                | Purpose                   | Key Columns                           |
 | -------------------- | ------------------------- | ------------------------------------- |
-| `lpa_wallets`        | Income/expense categories | name, category                        |
-| `lpa_incomes`        | Income records            | fk_wallet_id, amount, currency        |
-| `lpa_expenses`       | Expense records           | fk_wallet_id, amount, currency        |
-| `lpa_cashbook`       | Auto-generated ledger     | in_amount, out_amount, reference_type |
-| `lpa_activities`     | Audit trail               | type, name, ip_address                |
-| `lpa_configurations` | Settings store            | name (unique), setting (JSON)         |
+| `opa_wallets`        | Income/expense categories | name, category                        |
+| `opa_incomes`        | Income records            | fk_wallet_id, amount, currency        |
+| `opa_expenses`       | Expense records           | fk_wallet_id, amount, currency        |
+| `opa_cashbook`       | Auto-generated ledger     | in_amount, out_amount, reference_type |
+| `opa_activities`     | Audit trail               | type, name, ip_address                |
+| `opa_configurations` | Settings store            | name (unique), setting (JSON)         |
 
 ---
 
@@ -115,7 +115,7 @@ All tables use the `lpa_` prefix and include soft-delete support (`deleted_at` c
 
 ## API Actions
 
-All operations go through a single AJAX endpoint: `wp_ajax_lpa_action`
+All operations go through a single AJAX endpoint: `wp_ajax_opa_action`
 
 ### Wallets
 
@@ -165,7 +165,7 @@ All operations go through a single AJAX endpoint: `wp_ajax_lpa_action`
 │       └──────────────┼─────────────┘                │
 │                      │                              │
 │              ┌───────┴────────┐                     │
-│              │   script.js    │  jQuery AJAX layer  │
+│              │   opa-script.js │  jQuery AJAX layer  │
 │              │   (SPA-like)   │                     │
 │              └───────┬────────┘                     │
 │                      │                              │
@@ -193,8 +193,8 @@ All operations go through a single AJAX endpoint: `wp_ajax_lpa_action`
 ### Project Structure
 
 ```
-wp-content/plugins/lime-personal-accounting/
-├── lime-personal-accounting.php   # Entry point, hooks, assets
+wp-content/plugins/obydullah-personal-accounting/
+├── obydullah-personal-accounting.php   # Entry point, hooks, assets
 ├── includes/
 │   ├── database.php               # Schema creation, DB helpers
 │   ├── admin-menu.php             # WordPress menu registration
@@ -209,20 +209,20 @@ wp-content/plugins/lime-personal-accounting/
 │       ├── activities.php
 │       └── settings.php
 └── assets/
-    ├── css/style.css              # 426 lines of custom CSS
-    └── js/script.js               # 351 lines of jQuery SPA
+    ├── css/opa-style.css            # 400+ lines of custom CSS
+    └── js/opa-script.js            # 350+ lines of jQuery SPA
 ```
 
 ### Making Changes
 
-1. Edit any file under `wp-content/plugins/lime-personal-accounting/`
+1. Edit any file under `wp-content/plugins/obydullah-personal-accounting/`
 2. Refresh the WordPress admin page
 3. No rebuild required — volume-mounted for live reload
 
 ### Code Conventions
 
-- **PHP functions**: All prefixed with `lpa_`
-- **CSS classes**: All prefixed with `lpa-`
+- **PHP functions**: All prefixed with `opa_`
+- **CSS classes**: All prefixed with `opa-`
 - **JS functions**: Exposed on `window` for inline handlers
 - **Security**: Every AJAX call requires nonce + `manage_options` capability
 - **DB access**: Always via `$wpdb` API (never raw PDO)
@@ -232,9 +232,9 @@ wp-content/plugins/lime-personal-accounting/
 
 1. Add DB columns in `database.php` (use `dbDelta()`)
 2. Add AJAX handler in `ajax-handlers.php`
-3. Add router case in `lpa_ajax_router()`
+3. Add router case in `opa_ajax_router()`
 4. Create/update view in `includes/views/`
-5. Add JS functions in `script.js`
+5. Add JS functions in `opa-script.js`
 6. Register menu in `admin-menu.php` (if new page)
 
 ---

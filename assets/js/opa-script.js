@@ -1,351 +1,543 @@
 jQuery(document).ready(function($) {
 
     // --- Helper ---
-    function lpaPost(action, data, callback) {
-        $.post(lpaAjax.ajaxurl, {
-            action: 'lpa_action',
-            nonce: lpaAjax.nonce,
-            lpa_action: action,
+    function opaPost(action, data, callback) {
+        $.post(opaAjax.ajaxurl, {
+            action: 'opa_action',
+            nonce: opaAjax.nonce,
+            opa_action: action,
             data: data || {}
         }, function(res) {
             if (callback) callback(res);
         }).fail(function() {
-            lpaToast('Request failed', 'error');
+            opaToast('Request failed', 'error');
         });
     }
 
-    function lpaToast(msg, type) {
-        var toast = $('<div class="lpa-toast lpa-toast-' + (type || 'success') + '">' + msg + '</div>');
+    function opaToast(msg, type) {
+        var toast = $('<div class="opa-toast opa-toast-' + (type || 'success') + '">' + msg + '</div>');
         $('body').append(toast);
-        setTimeout(function() { toast.addClass('lpa-toast-show'); }, 10);
-        setTimeout(function() { toast.removeClass('lpa-toast-show'); setTimeout(function() { toast.remove(); }, 300); }, 3000);
+        setTimeout(function() { toast.addClass('opa-toast-show'); }, 10);
+        setTimeout(function() { toast.removeClass('opa-toast-show'); setTimeout(function() { toast.remove(); }, 300); }, 3000);
     }
 
-    function lpaFormatDate(d) {
+    function opaLoadingHtml() {
+        return '<div class="opa-loading"><span class="opa-spinner"></span>Loading...</div>';
+    }
+
+    function opaFormatDate(d) {
         if (!d) return '-';
         var dt = new Date(d);
         return dt.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
     }
 
-    function lpaFormatMoney(amt) {
+    function opaFormatMoney(amt) {
         if (!amt) return '0.00';
-        return parseFloat(amt).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        var num = parseFloat(amt).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        return (opaSettings.currency_symbol || '') + num;
     }
 
+    // --- SETTINGS STORE ---
+    var opaSettings = {
+        default_currency: 'USD',
+        currency_symbol: '',
+        page_size: 10,
+        default_wallet_id: 0
+    };
+
+    var opaCurrencySymbols = {
+        'USD': '$',
+        'EUR': '€',
+        'GBP': '£',
+        'BDT': '৳',
+        'INR': '₹',
+        'PKR': '₨',
+        'CAD': 'C$',
+        'AUD': 'A$',
+        'JPY': '¥',
+        'CNY': 'CN¥',
+        'AED': 'د.إ',
+        'SAR': '﷼',
+        'MYR': 'RM',
+        'SGD': 'S$',
+        'NZD': 'NZ$'
+    };
+
+    function opaSymbolFor(currency) {
+        return opaCurrencySymbols[String(currency || '').toUpperCase()] || '';
+    }
+
+    // --- PAGINATION ---
+    function opaPaginate(rows, page) {
+        var size = parseInt(opaSettings.page_size, 10) || 10;
+        var total = rows.length;
+        var totalPages = Math.max(1, Math.ceil(total / size));
+        if (page < 1) page = 1;
+        if (page > totalPages) page = totalPages;
+        return {
+            page: page,
+            totalPages: totalPages,
+            start: (page - 1) * size,
+            end: Math.min(page * size, total)
+        };
+    }
+
+    function opaPagerHtml(container, page, totalPages) {
+        if (totalPages <= 1) return '';
+        var html = '<div class="opa-pager"><span class="opa-pager-info">' + page + ' / ' + totalPages + '</span>';
+        html += '<button type="button" class="opa-btn-sm" data-opa-pager="' + container + '" data-page="' + (page - 1) + '"' + (page <= 1 ? ' disabled' : '') + '>Prev</button>';
+        html += '<button type="button" class="opa-btn-sm" data-opa-pager="' + container + '" data-page="' + (page + 1) + '"' + (page >= totalPages ? ' disabled' : '') + '>Next</button>';
+        html += '</div>';
+        return html;
+    }
+
+    $(document).on('click', '.opa-pager button[data-page]:not([disabled])', function() {
+        var target = $(this).data('opa-pager');
+        $(document.getElementById(target)).data('page', parseInt($(this).data('page'), 10) || 1);
+        var loader = {
+            'opa-wallets-table': opaLoadWallets,
+            'opa-incomes-table': opaLoadIncomes,
+            'opa-expenses-table': opaLoadExpenses,
+            'opa-cashbook-table': opaLoadCashbook,
+            'opa-activities-table': opaLoadActivities
+        }[target];
+        if (typeof loader === 'function') {
+            loader();
+        }
+    });
+
     // --- WALLETS ---
-    window.lpaWalletModal = function(id) {
-        $('#lpa-wallet-id').val('');
-        $('#lpa-wallet-name').val('');
-        $('#lpa-wallet-category').val('');
-        $('#lpa-wallet-modal-title').text('Add Wallet');
-        $('#lpa-wallet-modal').show();
+    window.opaWalletModal = function(id) {
+        $('#opa-wallet-id').val('');
+        $('#opa-wallet-name').val('');
+        $('#opa-wallet-category').val('');
+        $('#opa-wallet-modal-title').text('Add Wallet');
+        $('#opa-wallet-modal').show();
         if (id) {
-            lpaPost('get_wallets', {}, function(res) {
+            opaPost('get_wallets', {}, function(res) {
                 if (res.success) {
                     var w = res.data.find(function(r) { return r.id == id; });
                     if (w) {
-                        $('#lpa-wallet-id').val(w.id);
-                        $('#lpa-wallet-name').val(w.name);
-                        $('#lpa-wallet-category').val(w.category);
-                        $('#lpa-wallet-modal-title').text('Edit Wallet');
+                        $('#opa-wallet-id').val(w.id);
+                        $('#opa-wallet-name').val(w.name);
+                        $('#opa-wallet-category').val(w.category);
+                        $('#opa-wallet-modal-title').text('Edit Wallet');
                     }
                 }
             });
         }
     };
 
-    window.lpaSubmitWallet = function(e) {
+    window.opaSubmitWallet = function(e) {
         e.preventDefault();
-        var btn = $(e.target).find('button[type=submit');
+        var btn = $(e.target).find('button[type=submit]');
         btn.prop('disabled', true).text('Saving...');
-        lpaPost('save_wallet', {
-            id: $('#lpa-wallet-id').val(),
-            name: $('#lpa-wallet-name').val(),
-            category: $('#lpa-wallet-category').val()
+        opaPost('save_wallet', {
+            id: $('#opa-wallet-id').val(),
+            name: $('#opa-wallet-name').val(),
+            category: $('#opa-wallet-category').val()
         }, function(res) {
             btn.prop('disabled', false).text('Save');
             if (res.success) {
-                lpaToast(res.data.message);
-                lpaCloseModal();
-                lpaLoadWallets();
+                opaToast(res.data.message);
+                opaCloseModal();
+                opaLoadWallets();
             } else {
-                lpaToast(res.data.message || 'Error', 'error');
+                opaToast(res.data.message || 'Error', 'error');
             }
         });
         return false;
     };
 
-    window.lpaDeleteWallet = function(id) {
+    window.opaDeleteWallet = function(id) {
         if (!confirm('Delete this wallet?')) return;
-        lpaPost('delete_wallet', { id: id }, function(res) {
+        opaPost('delete_wallet', { id: id }, function(res) {
             if (res.success) {
-                lpaToast(res.data.message);
-                lpaLoadWallets();
+                opaToast(res.data.message);
+                opaLoadWallets();
             }
         });
     };
 
-    function lpaLoadWallets() {
-        lpaPost('get_wallets', {}, function(res) {
+    function opaLoadWallets() {
+        var table = $('#opa-wallets-table');
+        table.attr('data-opa-list', 'wallets');
+        table.html(opaLoadingHtml());
+        opaPost('get_wallets', {}, function(res) {
             if (!res.success || !res.data.length) {
-                $('#lpa-wallets-table').html('<div class="lpa-empty">No wallets found. Create one to get started.</div>');
+                table.html('<div class="opa-empty">No wallets found. Create one to get started.</div>');
                 return;
             }
-            var html = '<table class="lpa-table"><thead><tr><th>ID</th><th>Name</th><th>Category</th><th>Created</th><th>Actions</th></tr></thead><tbody>';
-            res.data.forEach(function(w) {
-                html += '<tr><td>' + w.id + '</td><td>' + w.name + '</td><td><span class="lpa-badge lpa-badge-' + w.category + '">' + w.category + '</span></td><td>' + lpaFormatDate(w.created_at) + '</td><td class="lpa-actions"><button class="lpa-btn-sm" onclick="lpaWalletModal(' + w.id + ')">Edit</button> <button class="lpa-btn-sm lpa-btn-danger" onclick="lpaDeleteWallet(' + w.id + ')">Delete</button></td></tr>';
+            var rows = res.data;
+            var p = opaPaginate(rows, parseInt(table.data('page') || 1, 10));
+            var html = '<table class="opa-table"><thead><tr><th>ID</th><th>Name</th><th>Category</th><th>Created</th><th>Actions</th></tr></thead><tbody>';
+            rows.slice(p.start, p.end).forEach(function(w) {
+                html += '<tr><td>' + w.id + '</td><td>' + w.name + '</td><td><span class="opa-badge opa-badge-' + w.category + '">' + w.category + '</span></td><td>' + opaFormatDate(w.created_at) + '</td><td class="opa-actions"><button class="opa-btn-sm" onclick="opaWalletModal(' + w.id + ')">Edit</button> <button class="opa-btn-sm opa-btn-danger" onclick="opaDeleteWallet(' + w.id + ')">Delete</button></td></tr>';
             });
             html += '</tbody></table>';
-            $('#lpa-wallets-table').html(html);
+            html += opaPagerHtml('opa-wallets-table', p.page, p.totalPages);
+            table.html(html);
         });
     }
 
     // --- INCOMES ---
-    window.lpaIncomeModal = function(id) {
-        $('#lpa-income-id').val('');
-        $('#lpa-income-wallet').val('');
-        $('#lpa-income-amount').val('');
-        $('#lpa-income-description').val('');
-        $('#lpa-income-currency').val('USD');
-        $('#lpa-income-modal-title').text('Add Income');
-        lpaLoadIncomeWallets();
-        $('#lpa-income-modal').show();
+    window.opaIncomeModal = function(id) {
+        $('#opa-income-id').val('');
+        $('#opa-income-wallet').val('');
+        $('#opa-income-amount').val('');
+        $('#opa-income-description').val('');
+        $('#opa-income-currency').val(opaSettings.default_currency || 'USD');
+        $('#opa-income-modal-title').text('Add Income');
+        opaLoadIncomeWallets();
+        $('#opa-income-modal').show();
         if (id) {
-            lpaPost('get_incomes', {}, function(res) {
+            opaPost('get_incomes', {}, function(res) {
                 if (res.success) {
                     var w = res.data.find(function(r) { return r.id == id; });
                     if (w) {
-                        $('#lpa-income-id').val(w.id);
-                        $('#lpa-income-wallet').val(w.fk_wallet_id);
-                        $('#lpa-income-amount').val(w.amount);
-                        $('#lpa-income-description').val(w.description);
-                        $('#lpa-income-currency').val(w.currency);
-                        $('#lpa-income-modal-title').text('Edit Income');
+                        $('#opa-income-id').val(w.id);
+                        $('#opa-income-wallet').val(w.fk_wallet_id);
+                        $('#opa-income-amount').val(w.amount);
+                        $('#opa-income-description').val(w.description);
+                        $('#opa-income-currency').val(w.currency);
+                        $('#opa-income-modal-title').text('Edit Income');
                     }
                 }
             });
         }
     };
 
-    function lpaLoadIncomeWallets() {
-        lpaPost('get_wallets', {}, function(res) {
+    function opaLoadIncomeWallets() {
+        opaPost('get_wallets', {}, function(res) {
             if (res.success) {
-                var sel = $('#lpa-income-wallet');
+                var sel = $('#opa-income-wallet');
                 sel.html('<option value="">Select wallet</option>');
                 res.data.forEach(function(w) {
                     if (w.category === 'income') {
                         sel.append('<option value="' + w.id + '">' + w.name + '</option>');
                     }
                 });
+                if (!$('#opa-income-id').val() && opaSettings.default_wallet_id) {
+                    sel.val(String(opaSettings.default_wallet_id));
+                }
             }
         });
     }
 
-    window.lpaSubmitIncome = function(e) {
+    window.opaSubmitIncome = function(e) {
         e.preventDefault();
         var btn = $(e.target).find('button[type=submit]');
         btn.prop('disabled', true).text('Saving...');
-        lpaPost('save_income', {
-            id: $('#lpa-income-id').val(),
-            wallet_id: $('#lpa-income-wallet').val(),
-            amount: $('#lpa-income-amount').val(),
-            description: $('#lpa-income-description').val(),
-            currency: $('#lpa-income-currency').val()
+        opaPost('save_income', {
+            id: $('#opa-income-id').val(),
+            wallet_id: $('#opa-income-wallet').val(),
+            amount: $('#opa-income-amount').val(),
+            description: $('#opa-income-description').val(),
+            currency: $('#opa-income-currency').val()
         }, function(res) {
             btn.prop('disabled', false).text('Save');
             if (res.success) {
-                lpaToast(res.data.message);
-                lpaCloseModal();
-                lpaLoadIncomes();
+                opaToast(res.data.message);
+                opaCloseModal();
+                opaLoadIncomes();
             } else {
-                lpaToast(res.data.message || 'Error', 'error');
+                opaToast(res.data.message || 'Error', 'error');
             }
         });
         return false;
     };
 
-    window.lpaDeleteIncome = function(id) {
+    window.opaDeleteIncome = function(id) {
         if (!confirm('Delete this income?')) return;
-        lpaPost('delete_income', { id: id }, function(res) {
+        opaPost('delete_income', { id: id }, function(res) {
             if (res.success) {
-                lpaToast(res.data.message);
-                lpaLoadIncomes();
+                opaToast(res.data.message);
+                opaLoadIncomes();
             }
         });
     };
 
-    function lpaLoadIncomes() {
-        lpaPost('get_incomes', {}, function(res) {
+    function opaLoadIncomes() {
+        var table = $('#opa-incomes-table');
+        table.attr('data-opa-list', 'incomes');
+        table.html(opaLoadingHtml());
+        opaPost('get_incomes', {}, function(res) {
             if (!res.success || !res.data.length) {
-                $('#lpa-incomes-table').html('<div class="lpa-empty">No incomes found. Add one to get started.</div>');
+                table.html('<div class="opa-empty">No incomes found. Add one to get started.</div>');
                 return;
             }
-            var html = '<table class="lpa-table"><thead><tr><th>ID</th><th>Wallet</th><th>Amount</th><th>Currency</th><th>Description</th><th>Date</th><th>Actions</th></tr></thead><tbody>';
-            res.data.forEach(function(r) {
-                html += '<tr><td>' + r.id + '</td><td>' + (r.wallet_name || '-') + '</td><td class="lpa-amount-income">' + lpaFormatMoney(r.amount) + '</td><td>' + (r.currency || '') + '</td><td>' + (r.description || '') + '</td><td>' + lpaFormatDate(r.created_at) + '</td><td class="lpa-actions"><button class="lpa-btn-sm" onclick="lpaIncomeModal(' + r.id + ')">Edit</button> <button class="lpa-btn-sm lpa-btn-danger" onclick="lpaDeleteIncome(' + r.id + ')">Delete</button></td></tr>';
+            var rows = res.data;
+            var p = opaPaginate(rows, parseInt(table.data('page') || 1, 10));
+            var html = '<table class="opa-table"><thead><tr><th>ID</th><th>Wallet</th><th>Amount</th><th>Currency</th><th>Description</th><th>Date</th><th>Actions</th></tr></thead><tbody>';
+            rows.slice(p.start, p.end).forEach(function(r) {
+                html += '<tr><td>' + r.id + '</td><td>' + (r.wallet_name || '-') + '</td><td class="opa-amount-income">' + opaFormatMoney(r.amount) + '</td><td>' + (r.currency || '') + '</td><td>' + (r.description || '') + '</td><td>' + opaFormatDate(r.created_at) + '</td><td class="opa-actions"><button class="opa-btn-sm" onclick="opaIncomeModal(' + r.id + ')">Edit</button> <button class="opa-btn-sm opa-btn-danger" onclick="opaDeleteIncome(' + r.id + ')">Delete</button></td></tr>';
             });
             html += '</tbody></table>';
-            $('#lpa-incomes-table').html(html);
+            html += opaPagerHtml('opa-incomes-table', p.page, p.totalPages);
+            table.html(html);
         });
     }
 
     // --- EXPENSES ---
-    window.lpaExpenseModal = function(id) {
-        $('#lpa-expense-id').val('');
-        $('#lpa-expense-wallet').val('');
-        $('#lpa-expense-amount').val('');
-        $('#lpa-expense-description').val('');
-        $('#lpa-expense-currency').val('USD');
-        $('#lpa-expense-modal-title').text('Add Expense');
-        lpaLoadExpenseWallets();
-        $('#lpa-expense-modal').show();
+    window.opaExpenseModal = function(id) {
+        $('#opa-expense-id').val('');
+        $('#opa-expense-wallet').val('');
+        $('#opa-expense-amount').val('');
+        $('#opa-expense-description').val('');
+        $('#opa-expense-currency').val(opaSettings.default_currency || 'USD');
+        $('#opa-expense-modal-title').text('Add Expense');
+        opaLoadExpenseWallets();
+        $('#opa-expense-modal').show();
         if (id) {
-            lpaPost('get_expenses', {}, function(res) {
+            opaPost('get_expenses', {}, function(res) {
                 if (res.success) {
                     var w = res.data.find(function(r) { return r.id == id; });
                     if (w) {
-                        $('#lpa-expense-id').val(w.id);
-                        $('#lpa-expense-wallet').val(w.fk_wallet_id);
-                        $('#lpa-expense-amount').val(w.amount);
-                        $('#lpa-expense-description').val(w.description);
-                        $('#lpa-expense-currency').val(w.currency);
-                        $('#lpa-expense-modal-title').text('Edit Expense');
+                        $('#opa-expense-id').val(w.id);
+                        $('#opa-expense-wallet').val(w.fk_wallet_id);
+                        $('#opa-expense-amount').val(w.amount);
+                        $('#opa-expense-description').val(w.description);
+                        $('#opa-expense-currency').val(w.currency);
+                        $('#opa-expense-modal-title').text('Edit Expense');
                     }
                 }
             });
         }
     };
 
-    function lpaLoadExpenseWallets() {
-        lpaPost('get_wallets', {}, function(res) {
+    function opaLoadExpenseWallets() {
+        opaPost('get_wallets', {}, function(res) {
             if (res.success) {
-                var sel = $('#lpa-expense-wallet');
+                var sel = $('#opa-expense-wallet');
                 sel.html('<option value="">Select wallet</option>');
                 res.data.forEach(function(w) {
                     if (w.category === 'expense') {
                         sel.append('<option value="' + w.id + '">' + w.name + '</option>');
                     }
                 });
+                if (!$('#opa-expense-id').val() && opaSettings.default_wallet_id) {
+                    sel.val(String(opaSettings.default_wallet_id));
+                }
             }
         });
     }
 
-    window.lpaSubmitExpense = function(e) {
+    window.opaSubmitExpense = function(e) {
         e.preventDefault();
         var btn = $(e.target).find('button[type=submit]');
         btn.prop('disabled', true).text('Saving...');
-        lpaPost('save_expense', {
-            id: $('#lpa-expense-id').val(),
-            wallet_id: $('#lpa-expense-wallet').val(),
-            amount: $('#lpa-expense-amount').val(),
-            description: $('#lpa-expense-description').val(),
-            currency: $('#lpa-expense-currency').val()
+        opaPost('save_expense', {
+            id: $('#opa-expense-id').val(),
+            wallet_id: $('#opa-expense-wallet').val(),
+            amount: $('#opa-expense-amount').val(),
+            description: $('#opa-expense-description').val(),
+            currency: $('#opa-expense-currency').val()
         }, function(res) {
             btn.prop('disabled', false).text('Save');
             if (res.success) {
-                lpaToast(res.data.message);
-                lpaCloseModal();
-                lpaLoadExpenses();
+                opaToast(res.data.message);
+                opaCloseModal();
+                opaLoadExpenses();
             } else {
-                lpaToast(res.data.message || 'Error', 'error');
+                opaToast(res.data.message || 'Error', 'error');
             }
         });
         return false;
     };
 
-    window.lpaDeleteExpense = function(id) {
+    window.opaDeleteExpense = function(id) {
         if (!confirm('Delete this expense?')) return;
-        lpaPost('delete_expense', { id: id }, function(res) {
+        opaPost('delete_expense', { id: id }, function(res) {
             if (res.success) {
-                lpaToast(res.data.message);
-                lpaLoadExpenses();
+                opaToast(res.data.message);
+                opaLoadExpenses();
             }
         });
     };
 
-    function lpaLoadExpenses() {
-        lpaPost('get_expenses', {}, function(res) {
+    function opaLoadExpenses() {
+        var table = $('#opa-expenses-table');
+        table.attr('data-opa-list', 'expenses');
+        table.html(opaLoadingHtml());
+        opaPost('get_expenses', {}, function(res) {
             if (!res.success || !res.data.length) {
-                $('#lpa-expenses-table').html('<div class="lpa-empty">No expenses found. Add one to get started.</div>');
+                table.html('<div class="opa-empty">No expenses found. Add one to get started.</div>');
                 return;
             }
-            var html = '<table class="lpa-table"><thead><tr><th>ID</th><th>Wallet</th><th>Amount</th><th>Currency</th><th>Description</th><th>Date</th><th>Actions</th></tr></thead><tbody>';
-            res.data.forEach(function(r) {
-                html += '<tr><td>' + r.id + '</td><td>' + (r.wallet_name || '-') + '</td><td class="lpa-amount-expense">' + lpaFormatMoney(r.amount) + '</td><td>' + (r.currency || '') + '</td><td>' + (r.description || '') + '</td><td>' + lpaFormatDate(r.created_at) + '</td><td class="lpa-actions"><button class="lpa-btn-sm" onclick="lpaExpenseModal(' + r.id + ')">Edit</button> <button class="lpa-btn-sm lpa-btn-danger" onclick="lpaDeleteExpense(' + r.id + ')">Delete</button></td></tr>';
+            var rows = res.data;
+            var p = opaPaginate(rows, parseInt(table.data('page') || 1, 10));
+            var html = '<table class="opa-table"><thead><tr><th>ID</th><th>Wallet</th><th>Amount</th><th>Currency</th><th>Description</th><th>Date</th><th>Actions</th></tr></thead><tbody>';
+            rows.slice(p.start, p.end).forEach(function(r) {
+                html += '<tr><td>' + r.id + '</td><td>' + (r.wallet_name || '-') + '</td><td class="opa-amount-expense">' + opaFormatMoney(r.amount) + '</td><td>' + (r.currency || '') + '</td><td>' + (r.description || '') + '</td><td>' + opaFormatDate(r.created_at) + '</td><td class="opa-actions"><button class="opa-btn-sm" onclick="opaExpenseModal(' + r.id + ')">Edit</button> <button class="opa-btn-sm opa-btn-danger" onclick="opaDeleteExpense(' + r.id + ')">Delete</button></td></tr>';
             });
             html += '</tbody></table>';
-            $('#lpa-expenses-table').html(html);
+            html += opaPagerHtml('opa-expenses-table', p.page, p.totalPages);
+            table.html(html);
         });
     }
 
     // --- CASHBOOK ---
-    function lpaLoadCashbook() {
-        lpaPost('get_cashbook', {}, function(res) {
+    function opaLoadCashbook() {
+        var table = $('#opa-cashbook-table');
+        table.attr('data-opa-list', 'cashbook');
+        table.html(opaLoadingHtml());
+        opaPost('get_cashbook', {}, function(res) {
             if (!res.success || !res.data.length) {
-                $('#lpa-cashbook-table').html('<div class="lpa-empty">No cashbook entries found.</div>');
+                table.html('<div class="opa-empty">No cashbook entries found.</div>');
                 return;
             }
-            var html = '<table class="lpa-table"><thead><tr><th>ID</th><th>Type</th><th>In Amount</th><th>Out Amount</th><th>Ref ID</th><th>Date</th></tr></thead><tbody>';
+            var rows = res.data;
+            var p = opaPaginate(rows, parseInt(table.data('page') || 1, 10));
+            var html = '<table class="opa-table"><thead><tr><th>ID</th><th>Type</th><th>In Amount</th><th>Out Amount</th><th>Ref ID</th><th>Date</th></tr></thead><tbody>';
             var totalIn = 0, totalOut = 0;
-            res.data.forEach(function(r) {
-                var type = r.reference_type || '-';
+            rows.forEach(function(r) {
                 totalIn += parseFloat(r.in_amount || 0);
                 totalOut += parseFloat(r.out_amount || 0);
-                html += '<tr><td>' + r.id + '</td><td><span class="lpa-badge lpa-badge-' + type + '">' + type + '</span></td><td class="lpa-amount-income">' + (r.in_amount ? lpaFormatMoney(r.in_amount) : '-') + '</td><td class="lpa-amount-expense">' + (r.out_amount ? lpaFormatMoney(r.out_amount) : '-') + '</td><td>' + r.fk_reference_id + '</td><td>' + lpaFormatDate(r.created_at) + '</td></tr>';
+            });
+            rows.slice(p.start, p.end).forEach(function(r) {
+                var type = r.reference_type || '-';
+                html += '<tr><td>' + r.id + '</td><td><span class="opa-badge opa-badge-' + type + '">' + type + '</span></td><td class="opa-amount-income">' + (r.in_amount ? opaFormatMoney(r.in_amount) : '-') + '</td><td class="opa-amount-expense">' + (r.out_amount ? opaFormatMoney(r.out_amount) : '-') + '</td><td>' + r.fk_reference_id + '</td><td>' + opaFormatDate(r.created_at) + '</td></tr>';
             });
             html += '</tbody></table>';
-            html += '<div class="lpa-cashbook-summary"><strong>Total In:</strong> <span class="lpa-amount-income">' + lpaFormatMoney(totalIn) + '</span> | <strong>Total Out:</strong> <span class="lpa-amount-expense">' + lpaFormatMoney(totalOut) + '</span></div>';
-            $('#lpa-cashbook-table').html(html);
+            html += opaPagerHtml('opa-cashbook-table', p.page, p.totalPages);
+            html += '<div class="opa-cashbook-summary"><strong>Total In:</strong> <span class="opa-amount-income">' + opaFormatMoney(totalIn) + '</span> | <strong>Total Out:</strong> <span class="opa-amount-expense">' + opaFormatMoney(totalOut) + '</span></div>';
+            table.html(html);
         });
     }
 
     // --- ACTIVITIES ---
-    function lpaLoadActivities() {
-        lpaPost('get_activities', {}, function(res) {
+    function opaLoadActivities() {
+        var table = $('#opa-activities-table');
+        table.attr('data-opa-list', 'activities');
+        table.html(opaLoadingHtml());
+        opaPost('get_activities', {}, function(res) {
             if (!res.success || !res.data.length) {
-                $('#lpa-activities-table').html('<div class="lpa-empty">No activities found.</div>');
+                table.html('<div class="opa-empty">No activities found.</div>');
                 return;
             }
-            var html = '<table class="lpa-table"><thead><tr><th>ID</th><th>Type</th><th>Name</th><th>IP</th><th>Date</th></tr></thead><tbody>';
-            res.data.forEach(function(r) {
-                html += '<tr><td>' + r.id + '</td><td><span class="lpa-badge lpa-badge-' + r.type + '">' + r.type + '</span></td><td>' + r.name + '</td><td>' + (r.ip_address || '-') + '</td><td>' + lpaFormatDate(r.created_at) + '</td></tr>';
+            var rows = res.data;
+            var p = opaPaginate(rows, parseInt(table.data('page') || 1, 10));
+            var html = '<table class="opa-table"><thead><tr><th>ID</th><th>Type</th><th>Name</th><th>IP</th><th>Date</th></tr></thead><tbody>';
+            rows.slice(p.start, p.end).forEach(function(r) {
+                html += '<tr><td>' + r.id + '</td><td><span class="opa-badge opa-badge-' + r.type + '">' + r.type + '</span></td><td>' + r.name + '</td><td>' + (r.ip_address || '-') + '</td><td>' + opaFormatDate(r.created_at) + '</td></tr>';
             });
             html += '</tbody></table>';
-            $('#lpa-activities-table').html(html);
+            html += opaPagerHtml('opa-activities-table', p.page, p.totalPages);
+            table.html(html);
         });
     }
 
     // --- SETTINGS ---
-    function lpaLoadSettings() {
-        lpaPost('get_settings', {}, function(res) {
-            if (!res.success || !res.data.length) {
-                $('#lpa-settings-list').html('<div class="lpa-empty">No settings found.</div>');
-                return;
+    function opaFetchSettings(callback) {
+        opaPost('get_settings', {}, function(res) {
+            if (res.success) {
+                var s = {};
+                (res.data || []).forEach(function(r) {
+                    var v = r.setting;
+                    try { v = JSON.parse(v); } catch (e) {}
+                    s[r.name] = v;
+                });
+                $.extend(opaSettings, s);
+                if (!opaSettings.default_currency) opaSettings.default_currency = 'USD';
+                if (!opaSettings.page_size) opaSettings.page_size = 10;
             }
-            var html = '<table class="lpa-table"><thead><tr><th>Name</th><th>Setting</th></tr></thead><tbody>';
-            res.data.forEach(function(r) {
-                var val = r.setting;
-                try { val = JSON.parse(val); if (typeof val === 'object') val = JSON.stringify(val); } catch(e) {}
-                html += '<tr><td><strong>' + r.name + '</strong></td><td>' + val + '</td></tr>';
-            });
-            html += '</tbody></table>';
-            $('#lpa-settings-list').html(html);
+            if (callback) callback();
         });
     }
 
+    function opaLoadSettings() {
+        $('#opa-settings-currency').val(opaSettings.default_currency);
+        $('#opa-settings-symbol').val(opaSettings.currency_symbol || opaSymbolFor(opaSettings.default_currency));
+        $('#opa-settings-page-size').val(String(opaSettings.page_size));
+        opaLoadDefaultWallets();
+    }
+
+    $('#opa-settings-currency').on('change', function() {
+        var symbol = opaSymbolFor($(this).val());
+        if (symbol) {
+            $('#opa-settings-symbol').val(symbol);
+        }
+    });
+
+    function opaLoadDefaultWallets() {
+        var sel = $('#opa-settings-default-wallet');
+        var loading = $('#opa-settings-wallet-loading');
+        sel.prop('disabled', true).html('<option value="">Loading wallets...</option>');
+        loading.show();
+        opaPost('get_wallets', {}, function(res) {
+            loading.hide();
+            sel.prop('disabled', false);
+            if (res.success) {
+                sel.html('<option value="">None</option>');
+                res.data.forEach(function(w) {
+                    sel.append('<option value="' + w.id + '">' + w.name + ' (' + w.category + ')</option>');
+                });
+            }
+            if (opaSettings.default_wallet_id) {
+                sel.val(String(opaSettings.default_wallet_id));
+            }
+        });
+    }
+
+    window.opaSaveSettings = function(e) {
+        e.preventDefault();
+        var btn = $(e.target).find('button[type=submit]');
+        btn.prop('disabled', true).text('Saving...');
+        opaPost('save_settings', {
+            default_currency: $('#opa-settings-currency').val(),
+            currency_symbol: $('#opa-settings-symbol').val(),
+            page_size: $('#opa-settings-page-size').val(),
+            default_wallet_id: $('#opa-settings-default-wallet').val() || 0
+        }, function(res) {
+            btn.prop('disabled', false).text('Save Settings');
+            if (res.success) {
+                opaSettings.default_currency = $('#opa-settings-currency').val();
+                opaSettings.currency_symbol = $('#opa-settings-symbol').val();
+                opaSettings.page_size = parseInt($('#opa-settings-page-size').val(), 10) || 10;
+                opaSettings.default_wallet_id = parseInt($('#opa-settings-default-wallet').val() || 0, 10) || 0;
+                opaToast(res.data.message);
+            } else {
+                opaToast(res.data.message || 'Error', 'error');
+            }
+        });
+        return false;
+    };
+
+    window.opaResetData = function() {
+        if (!window.confirm('This will permanently delete ALL wallets, transactions, cashbook entries, activities and saved settings. This cannot be undone. Continue?')) return;
+        opaPost('reset_data', {}, function(res) {
+            if (res.success) {
+                opaToast(res.data.message);
+                opaSettings.default_currency = 'USD';
+                opaSettings.currency_symbol = '';
+                opaSettings.page_size = 10;
+                opaSettings.default_wallet_id = 0;
+                opaLoadSettings();
+            } else {
+                opaToast(res.data.message || 'Error', 'error');
+            }
+        });
+    };
+
+    window.opaExportCsv = function() {
+        window.location.href = opaAjax.ajaxurl + '?action=opa_action&nonce=' + encodeURIComponent(opaAjax.nonce) + '&opa_action=export_csv';
+    };
+
     // --- MODAL ---
-    window.lpaCloseModal = function() {
-        $('.lpa-modal').hide();
+    window.opaCloseModal = function() {
+        $('.opa-modal').hide();
     };
 
     // --- TOAST ---
-    window.lpaToast = lpaToast;
+    window.opaToast = opaToast;
 
     // --- INIT ---
-    if ($('#lpa-wallets-table').length) lpaLoadWallets();
-    if ($('#lpa-incomes-table').length) lpaLoadIncomes();
-    if ($('#lpa-expenses-table').length) lpaLoadExpenses();
-    if ($('#lpa-cashbook-table').length) lpaLoadCashbook();
-    if ($('#lpa-activities-table').length) lpaLoadActivities();
-    if ($('#lpa-settings-list').length) lpaLoadSettings();
+    opaFetchSettings(function() {
+        if ($('#opa-wallets-table').length) opaLoadWallets();
+        if ($('#opa-incomes-table').length) opaLoadIncomes();
+        if ($('#opa-expenses-table').length) opaLoadExpenses();
+        if ($('#opa-cashbook-table').length) opaLoadCashbook();
+        if ($('#opa-activities-table').length) opaLoadActivities();
+        if ($('#opa-settings-form').length) opaLoadSettings();
+    });
 });

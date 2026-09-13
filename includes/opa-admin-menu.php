@@ -1,24 +1,24 @@
 <?php
 if (!defined('ABSPATH')) exit;
 
-add_action('admin_menu', 'lpa_register_menus');
+add_action('admin_menu', 'opa_register_menus');
 
-function lpa_register_menus() {
+function opa_register_menus() {
     add_menu_page(
-        'Lime Personal Accounting',
-        'Accounting',
+        __('Obydullah Personal Accounting', 'obydullah-personal-accounting'),
+        __('Accounting', 'obydullah-personal-accounting'),
         'manage_options',
-        'lpa_dashboard',
-        'lpa_page_dashboard',
+        'opa_dashboard',
+        'opa_page_dashboard',
         'dashicons-money-alt',
         30
     );
 
-    add_submenu_page('lpa_dashboard', 'Dashboard', 'Dashboard', 'manage_options', 'lpa_dashboard', 'lpa_page_dashboard');
-    add_submenu_page('lpa_dashboard', 'Wallets', 'Wallets', 'manage_options', 'lpa_wallets', 'lpa_page_wallets');
-    add_submenu_page('lpa_dashboard', 'Incomes', 'Incomes', 'manage_options', 'lpa_incomes', 'lpa_page_incomes');
-    add_submenu_page('lpa_dashboard', 'Expenses', 'Expenses', 'manage_options', 'lpa_expenses', 'lpa_page_expenses');
-    add_submenu_page('lpa_dashboard', 'Cashbook', 'Cashbook', 'manage_options', 'lpa_cashbook', 'lpa_page_cashbook');
-    add_submenu_page('lpa_dashboard', 'Activities', 'Activities', 'manage_options', 'lpa_activities', 'lpa_page_activities');
-    add_submenu_page('lpa_dashboard', 'Settings', 'Settings', 'manage_options', 'lpa_settings', 'lpa_page_settings');
+    add_submenu_page('opa_dashboard', __('Dashboard', 'obydullah-personal-accounting'), __('Dashboard', 'obydullah-personal-accounting'), 'manage_options', 'opa_dashboard', 'opa_page_dashboard');
+    add_submenu_page('opa_dashboard', __('Wallets', 'obydullah-personal-accounting'), __('Wallets', 'obydullah-personal-accounting'), 'manage_options', 'opa_wallets', 'opa_page_wallets');
+    add_submenu_page('opa_dashboard', __('Incomes', 'obydullah-personal-accounting'), __('Incomes', 'obydullah-personal-accounting'), 'manage_options', 'opa_incomes', 'opa_page_incomes');
+    add_submenu_page('opa_dashboard', __('Expenses', 'obydullah-personal-accounting'), __('Expenses', 'obydullah-personal-accounting'), 'manage_options', 'opa_expenses', 'opa_page_expenses');
+    add_submenu_page('opa_dashboard', __('Cashbook', 'obydullah-personal-accounting'), __('Cashbook', 'obydullah-personal-accounting'), 'manage_options', 'opa_cashbook', 'opa_page_cashbook');
+    add_submenu_page('opa_dashboard', __('Activities', 'obydullah-personal-accounting'), __('Activities', 'obydullah-personal-accounting'), 'manage_options', 'opa_activities', 'opa_page_activities');
+    add_submenu_page('opa_dashboard', __('Settings', 'obydullah-personal-accounting'), __('Settings', 'obydullah-personal-accounting'), 'manage_options', 'opa_settings', 'opa_page_settings');
 }

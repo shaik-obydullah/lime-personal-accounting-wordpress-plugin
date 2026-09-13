@@ -1,4 +1,4 @@
-<h2><strong>Lime Personal Accounting &mdash; A WordPress Plugin Case Study</strong></h2>
+<h2><strong>Obydullah Personal Accounting &mdash; A WordPress Plugin Case Study</strong></h2>
 
 <p><em>Building a lightweight, self-hosted personal accounting system inside WordPress</em></p>
 
@@ -52,9 +52,9 @@
 <p>The entire system runs as three Docker containers orchestrated via <code>docker-compose.yml</code>:</p>
 
 <ul>
-<li><strong>lime_lpa_app</strong> &mdash; WordPress on PHP 8.5/Apache, serving the plugin on port <code>8090</code></li>
-<li><strong>lime_lpa_db</strong> &mdash; MySQL 8.0 with persistent volume storage</li>
-<li><strong>lime_lpa_phpmyadmin</strong> &mdash; phpMyAdmin on port <code>8091</code> for direct database inspection</li>
+<li><strong>lime_opa_app</strong> &mdash; WordPress on PHP 8.5/Apache, serving the plugin on port <code>8090</code></li>
+<li><strong>lime_opa_db</strong> &mdash; MySQL 8.0 with persistent volume storage</li>
+<li><strong>lime_opa_phpmyadmin</strong> &mdash; phpMyAdmin on port <code>8091</code> for direct database inspection</li>
 </ul>
 
 <p>The plugin code is volume-mounted directly into the WordPress container, enabling live development without rebuilds.</p>
@@ -63,7 +63,7 @@
 
 <h3><strong>4. Database Design</strong></h3>
 
-<p>The plugin creates <strong>6 custom tables</strong> with the <code>lpa_</code> prefix, all following a consistent schema pattern with soft-delete support:</p>
+<p>The plugin creates <strong>6 custom tables</strong> with the <code>opa_</code> prefix, all following a consistent schema pattern with soft-delete support:</p>
 
 <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
 <tbody>
@@ -73,32 +73,32 @@
 <td style="padding: 10px 14px; border: 1px solid #333; font-weight: bold;">Key Columns</td>
 </tr>
 <tr>
-<td style="padding: 10px 14px; border: 1px solid #d1d9e0;"><code>lpa_wallets</code></td>
+<td style="padding: 10px 14px; border: 1px solid #d1d9e0;"><code>opa_wallets</code></td>
 <td style="padding: 10px 14px; border: 1px solid #d1d9e0;">Financial accounts/categories</td>
 <td style="padding: 10px 14px; border: 1px solid #d1d9e0;">name, category (income/expense)</td>
 </tr>
 <tr style="background-color: #f8fafc;">
-<td style="padding: 10px 14px; border: 1px solid #d1d9e0;"><code>lpa_incomes</code></td>
+<td style="padding: 10px 14px; border: 1px solid #d1d9e0;"><code>opa_incomes</code></td>
 <td style="padding: 10px 14px; border: 1px solid #d1d9e0;">Income transactions</td>
 <td style="padding: 10px 14px; border: 1px solid #d1d9e0;">fk_wallet_id, amount, description, currency</td>
 </tr>
 <tr>
-<td style="padding: 10px 14px; border: 1px solid #d1d9e0;"><code>lpa_expenses</code></td>
+<td style="padding: 10px 14px; border: 1px solid #d1d9e0;"><code>opa_expenses</code></td>
 <td style="padding: 10px 14px; border: 1px solid #d1d9e0;">Expense transactions</td>
 <td style="padding: 10px 14px; border: 1px solid #d1d9e0;">fk_wallet_id, amount, description, currency</td>
 </tr>
 <tr style="background-color: #f8fafc;">
-<td style="padding: 10px 14px; border: 1px solid #d1d9e0;"><code>lpa_cashbook</code></td>
+<td style="padding: 10px 14px; border: 1px solid #d1d9e0;"><code>opa_cashbook</code></td>
 <td style="padding: 10px 14px; border: 1px solid #d1d9e0;">Auto-generated transaction ledger</td>
 <td style="padding: 10px 14px; border: 1px solid #d1d9e0;">in_amount, out_amount, fk_reference_id, reference_type</td>
 </tr>
 <tr>
-<td style="padding: 10px 14px; border: 1px solid #d1d9e0;"><code>lpa_activities</code></td>
+<td style="padding: 10px 14px; border: 1px solid #d1d9e0;"><code>opa_activities</code></td>
 <td style="padding: 10px 14px; border: 1px solid #d1d9e0;">Audit trail</td>
 <td style="padding: 10px 14px; border: 1px solid #d1d9e0;">type, name, ip_address, geo fields</td>
 </tr>
 <tr style="background-color: #f8fafc;">
-<td style="padding: 10px 14px; border: 1px solid #d1d9e0;"><code>lpa_configurations</code></td>
+<td style="padding: 10px 14px; border: 1px solid #d1d9e0;"><code>opa_configurations</code></td>
 <td style="padding: 10px 14px; border: 1px solid #d1d9e0;">Plugin settings</td>
 <td style="padding: 10px 14px; border: 1px solid #d1d9e0;">name (unique), setting (JSON text)</td>
 </tr>
@@ -119,19 +119,19 @@
 
 <p>The plugin follows a modular WordPress architecture with clear separation of concerns:</p>
 
-<h4><strong>5.1 Main Entry Point</strong> (<code>lime-personal-accounting.php</code>)</h4>
+<h4><strong>5.1 Main Entry Point</strong> (<code>obydullah-personal-accounting.php</code>)</h4>
 
-<p>The bootstrap file defines constants, loads modules, registers activation/deactivation hooks, and wires up asset enqueuing. On activation, it calls <code>lpa_create_tables()</code> to set up the database schema via <code>dbDelta()</code>.</p>
+<p>The bootstrap file defines constants, loads modules, registers activation/deactivation hooks, and wires up asset enqueuing. On activation, it calls <code>opa_create_tables()</code> to set up the database schema via <code>dbDelta()</code>.</p>
 
-<h4><strong>5.2 Admin Menu System</strong> (<code>includes/admin-menu.php</code>)</h4>
+<h4><strong>5.2 Admin Menu System</strong> (<code>includes/opa-admin-menu.php</code>)</h4>
 
 <p>Registers a top-level <strong>"Accounting"</strong> menu with 7 subpages: Dashboard, Wallets, Incomes, Expenses, Cashbook, Activities, and Settings. All pages require the <code>manage_options</code> capability.</p>
 
-<h4><strong>5.3 AJAX Router</strong> (<code>includes/ajax-handlers.php</code>)</h4>
+<h4><strong>5.3 AJAX Router</strong> (<code>includes/opa-ajax-handlers.php</code>)</h4>
 
-<p>A single AJAX endpoint (<code>wp_ajax_lpa_action</code>) routes all requests through a switch-based dispatcher. The router handles 12 actions across wallets, incomes, expenses, cashbook, activities, and settings. Security is enforced via nonce verification and capability checks on every request.</p>
+<p>A single AJAX endpoint (<code>wp_ajax_opa_action</code>) routes all requests through a switch-based dispatcher. The router handles 15 actions across wallets, incomes, expenses, cashbook, activities, settings, data reset, and CSV export. Security is enforced via nonce verification and capability checks on every request.</p>
 
-<h4><strong>5.4 Page Controllers</strong> (<code>includes/pages.php</code>)</h4>
+<h4><strong>5.4 Page Controllers</strong> (<code>includes/opa-pages.php</code>)</h4>
 
 <p>Each page function fetches necessary data (dashboard computes totals) and includes the corresponding view template.</p>
 
@@ -156,15 +156,15 @@
 <p>This is the plugin's core innovation. When a new income is created:</p>
 
 <ol>
-<li>A record is inserted into <code>lpa_incomes</code></li>
-<li>A corresponding record is automatically inserted into <code>lpa_cashbook</code> with <code>in_amount</code> populated and <code>reference_type = 'income'</code></li>
+<li>A record is inserted into <code>opa_incomes</code></li>
+<li>A corresponding record is automatically inserted into <code>opa_cashbook</code> with <code>in_amount</code> populated and <code>reference_type = 'income'</code></li>
 </ol>
 
 <p>When an expense is created, the same dual-write happens with <code>out_amount</code>. When either is deleted, both records are soft-deleted simultaneously. This ensures the cashbook always reflects the true state of all transactions.</p>
 
 <h4><strong>6.4 Activity Logging</strong></h4>
 
-<p>Every income/expense creation triggers <code>lpa_log_activity()</code>, which records the admin user, action type (<code>success</code> for income, <code>warning</code> for expense), description, IP address, and timestamp. The activities page shows the last 50 entries.</p>
+<p>Every income/expense creation triggers <code>opa_log_activity()</code>, which records the admin user, action type (<code>success</code> for income, <code>warning</code> for expense), description, IP address, and timestamp. The activities page shows the last 50 entries.</p>
 
 <h4><strong>6.5 Dashboard Analytics</strong></h4>
 
@@ -186,7 +186,7 @@
 
 <h4><strong>7.1 AJAX Helper</strong></h4>
 
-<p>A centralized <code>lpaPost()</code> function handles all server communication, automatically including the action type, nonce, and data payload. Error handling is built-in with toast notifications.</p>
+<p>A centralized <code>opaPost()</code> function handles all server communication, automatically including the action type, nonce, and data payload. Error handling is built-in with toast notifications.</p>
 
 <h4><strong>7.2 Modal System</strong></h4>
 
@@ -209,7 +209,7 @@
 <h3><strong>8. Security Measures</strong></h3>
 
 <ul>
-<li><strong>Nonce Verification:</strong> Every AJAX request must include a valid <code>lpa_nonce</code> token, verified server-side via <code>check_ajax_referer()</code></li>
+<li><strong>Nonce Verification:</strong> Every AJAX request must include a valid <code>opa_nonce</code> token, verified server-side via <code>check_ajax_referer()</code></li>
 <li><strong>Capability Checks:</strong> All operations require <code>manage_options</code> capability (admin-level access)</li>
 <li><strong>Input Sanitization:</strong> All user inputs are sanitized using WordPress functions: <code>sanitize_text_field()</code>, <code>sanitize_textarea_field()</code>, <code>absint()</code>, <code>floatval()</code></li>
 <li><strong>ABSPATH Checks:</strong> Every PHP file begins with <code>if (!defined('ABSPATH')) exit;</code> to prevent direct access</li>
@@ -260,19 +260,19 @@
 </tr>
 <tr>
 <td style="padding: 10px 14px; border: 1px solid #d1d9e0;">Total PHP Files</td>
-<td style="padding: 10px 14px; border: 1px solid #d1d9e0;">9</td>
+<td style="padding: 10px 14px; border: 1px solid #d1d9e0;">12</td>
 </tr>
 <tr style="background-color: #f8fafc;">
 <td style="padding: 10px 14px; border: 1px solid #d1d9e0;">PHP Lines of Code</td>
-<td style="padding: 10px 14px; border: 1px solid #d1d9e0;">~590</td>
+<td style="padding: 10px 14px; border: 1px solid #d1d9e0;">~1,060</td>
 </tr>
 <tr>
 <td style="padding: 10px 14px; border: 1px solid #d1d9e0;">JavaScript</td>
-<td style="padding: 10px 14px; border: 1px solid #d1d9e0;">351 lines (single file)</td>
+<td style="padding: 10px 14px; border: 1px solid #d1d9e0;">543 lines (single file)</td>
 </tr>
 <tr style="background-color: #f8fafc;">
 <td style="padding: 10px 14px; border: 1px solid #d1d9e0;">CSS</td>
-<td style="padding: 10px 14px; border: 1px solid #d1d9e0;">426 lines</td>
+<td style="padding: 10px 14px; border: 1px solid #d1d9e0;">659 lines</td>
 </tr>
 <tr>
 <td style="padding: 10px 14px; border: 1px solid #d1d9e0;">Database Tables</td>
@@ -280,7 +280,7 @@
 </tr>
 <tr style="background-color: #f8fafc;">
 <td style="padding: 10px 14px; border: 1px solid #d1d9e0;">AJAX Endpoints</td>
-<td style="padding: 10px 14px; border: 1px solid #d1d9e0;">12 (single router)</td>
+<td style="padding: 10px 14px; border: 1px solid #d1d9e0;">15 (single router)</td>
 </tr>
 <tr>
 <td style="padding: 10px 14px; border: 1px solid #d1d9e0;">Admin Pages</td>
@@ -317,7 +317,7 @@
 </tr>
 <tr style="background-color: #f8fafc;">
 <td style="padding: 10px 14px; border: 1px solid #d1d9e0;">Page-specific asset loading</td>
-<td style="padding: 10px 14px; border: 1px solid #d1d9e0;"><code>admin_enqueue_scripts</code> hook checks current screen ID for <code>lpa_</code> prefix before loading</td>
+<td style="padding: 10px 14px; border: 1px solid #d1d9e0;"><code>admin_enqueue_scripts</code> hook checks current screen ID for <code>opa_</code> prefix before loading</td>
 </tr>
 <tr>
 <td style="padding: 10px 14px; border: 1px solid #d1d9e0;">AJAX security in WordPress</td>
@@ -331,7 +331,7 @@
 <h3><strong>13. Future Enhancements</strong></h3>
 
 <ul>
-<li><strong>CSV/PDF Export</strong> &mdash; Generate reports from cashbook data</li>
+<li><strong>PDF Export</strong> &mdash; Generate printable report files from cashbook data (CSV export already shipped)</li>
 <li><strong>Date Range Filtering</strong> &mdash; Filter transactions by month/year</li>
 <li><strong>Budget Alerts</strong> &mdash; Set spending limits per wallet category</li>
 <li><strong>Recurring Transactions</strong> &mdash; Auto-generate monthly income/expense entries</li>
@@ -345,7 +345,7 @@
 
 <h3><strong>14. Conclusion</strong></h3>
 
-<p>Lime Personal Accounting demonstrates that a fully functional personal finance tool can be built as a lightweight WordPress plugin with zero external dependencies. By leveraging WordPress's built-in capabilities (admin UI, AJAX, database abstraction, user management) and adding a clean frontend layer, the plugin delivers a complete accounting experience that is:</p>
+<p>Obydullah Personal Accounting demonstrates that a fully functional personal finance tool can be built as a lightweight WordPress plugin with zero external dependencies. By leveraging WordPress's built-in capabilities (admin UI, AJAX, database abstraction, user management) and adding a clean frontend layer, the plugin delivers a complete accounting experience that is:</p>
 
 <ul>
 <li><strong>Self-hosted</strong> &mdash; all data stays on your server</li>

@@ -1,16 +1,16 @@
 <?php
 if (!defined('ABSPATH')) exit;
 
-function lpa_create_tables() {
+function opa_create_tables() {
     global $wpdb;
     $charset = $wpdb->get_charset_collate();
 
-    $wallets = LPA_TABLE_PREFIX . 'wallets';
-    $incomes = LPA_TABLE_PREFIX . 'incomes';
-    $expenses = LPA_TABLE_PREFIX . 'expenses';
-    $cashbook = LPA_TABLE_PREFIX . 'cashbook';
-    $activities = LPA_TABLE_PREFIX . 'activities';
-    $configurations = LPA_TABLE_PREFIX . 'configurations';
+    $wallets = $wpdb->prefix . OPA_TABLE_PREFIX . 'wallets';
+    $incomes = $wpdb->prefix . OPA_TABLE_PREFIX . 'incomes';
+    $expenses = $wpdb->prefix . OPA_TABLE_PREFIX . 'expenses';
+    $cashbook = $wpdb->prefix . OPA_TABLE_PREFIX . 'cashbook';
+    $activities = $wpdb->prefix . OPA_TABLE_PREFIX . 'activities';
+    $configurations = $wpdb->prefix . OPA_TABLE_PREFIX . 'configurations';
 
     $sql = "CREATE TABLE $wallets (
         id bigint(20) NOT NULL AUTO_INCREMENT,
@@ -108,23 +108,33 @@ function lpa_create_tables() {
     require_once ABSPATH . 'wp-admin/includes/upgrade.php';
     dbDelta($sql);
 
-    update_option('lpa_db_version', LPA_VERSION);
+    update_option('opa_db_version', OPA_VERSION);
 }
 
-function lpa_db() {
+function opa_db() {
     global $wpdb;
     return $wpdb;
 }
 
-function lpa_table($name) {
+function opa_table($name) {
     global $wpdb;
-    return $wpdb->prefix . 'lpa_' . $name;
+    return $wpdb->prefix . 'opa_' . $name;
 }
 
-function lpa_now() {
+function opa_now() {
     return current_time('mysql');
 }
 
-function lpa_user_id() {
+function opa_user_id() {
     return get_current_user_id();
+}
+
+function opa_cache_group() {
+    return 'opa_cache_' . opa_user_id();
+}
+
+function opa_flush_cache() {
+    $group = opa_cache_group();
+    wp_cache_delete('settings', $group);
+    wp_cache_delete('summary', $group);
 }
