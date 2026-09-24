@@ -1,6 +1,7 @@
 === Obydullah Personal Accounting ===
 Contributors: obydullah
 Tags: accounting, income, expense, wallet, cashbook
+Text Domain: obydullah-personal-accounting
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 8.0

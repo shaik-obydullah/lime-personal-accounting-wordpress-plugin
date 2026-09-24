@@ -1,17 +1,15 @@
 <?php
 /**
  * Plugin Name: Obydullah Personal Accounting
- * Plugin URI: https://obydullah.com
  * Description: Track personal income, expenses, wallets, and automatic cashbook ledgers - all inside your WordPress admin.
- * Version: 1.0.0
- * Author: Obydullah
+ * Author: Shaik Obydullah
  * Author URI: https://obydullah.com
- * License: GPL-2.0-or-later
- * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain: obydullah-personal-accounting
  * Domain Path: /languages
  * Requires at least: 6.0
  * Requires PHP: 8.0
+ * License: GPL-2.0-or-later
+ * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  */
 
 if (!defined('ABSPATH')) {

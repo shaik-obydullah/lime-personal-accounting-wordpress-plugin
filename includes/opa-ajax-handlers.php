@@ -8,8 +8,8 @@ function opa_ajax_router() {
         wp_send_json_error(array('message' => __('Unauthorized', 'obydullah-personal-accounting')));
     }
 
-    $action = isset($_POST['opa_action']) ? sanitize_text_field(wp_unslash($_POST['opa_action'])) : (isset($_GET['opa_action']) ? sanitize_text_field(wp_unslash($_GET['opa_action'])) : '');
-    $data = isset($_POST['data']) ? wp_unslash($_POST['data']) : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- each field is sanitized by the handler.
+    $action = sanitize_text_field( wp_unslash( $_POST['opa_action'] ?? $_GET['opa_action'] ?? '' ) );
+    $data = wp_unslash( $_POST['data'] ?? array() ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- each field is sanitized by the handler.
 
     switch ($action) {
         case 'get_wallets':
@@ -85,12 +85,18 @@ function opa_save_wallet($data) {
     $user = opa_user_id();
 
     if ($id > 0) {
-        $db->update($table, array(
-            'name' => $name,
-            'category' => $category,
-            'updated_at' => $now,
-            'updated_by' => $user,
-        ), array('id' => $id), array('%s', '%s', '%s', '%d'), array('%d'));
+        $db->update(
+            $table,
+            [
+                'name'      => $name,
+                'category'  => $category,
+                'updated_at' => $now,
+                'updated_by' => $user,
+            ],
+            ['id' => $id],
+            ['%s', '%s', '%s', '%d'],
+            ['%d']
+        );
         opa_flush_cache();
         wp_send_json_success(array('message' => __('Wallet updated', 'obydullah-personal-accounting')));
     } else {
@@ -109,7 +115,11 @@ function opa_delete_wallet($data) {
     $db = opa_db();
     $table = opa_table('wallets');
     $id = absint($data['id'] ?? 0);
-    $db->update($table, array('deleted_at' => opa_now()), array('id' => $id), array('%s'), array('%d'));
+    $db->delete(
+        $table,
+        ['id' => $id],
+        ['%d']
+    );
     opa_flush_cache();
     wp_send_json_success(array('message' => __('Wallet deleted', 'obydullah-personal-accounting')));
 }
@@ -145,14 +155,20 @@ function opa_save_income($data) {
     $user = opa_user_id();
 
     if ($id > 0) {
-        $db->update($table, array(
-            'fk_wallet_id' => $wallet_id,
-            'amount' => $amount,
-            'description' => $description,
-            'currency' => $currency,
-            'updated_at' => $now,
-            'updated_by' => $user,
-        ), array('id' => $id), array('%d', '%f', '%s', '%s', '%s', '%d'), array('%d'));
+        $db->update(
+            $table,
+            [
+                'fk_wallet_id' => $wallet_id,
+                'amount'       => $amount,
+                'description'  => $description,
+                'currency'     => $currency,
+                'updated_at'   => $now,
+                'updated_by'   => $user,
+            ],
+            ['id' => $id],
+            ['%d', '%f', '%s', '%s', '%s', '%d'],
+            ['%d']
+        );
         opa_flush_cache();
         wp_send_json_success(array('message' => __('Income updated', 'obydullah-personal-accounting')));
     } else {
@@ -187,10 +203,17 @@ function opa_delete_income($data) {
     $table = opa_table('incomes');
     $cashbook_table = opa_table('cashbook');
     $id = absint($data['id'] ?? 0);
-    $now = opa_now();
 
-    $db->update($table, array('deleted_at' => $now), array('id' => $id), array('%s'), array('%d'));
-    $db->update($cashbook_table, array('deleted_at' => $now), array('fk_reference_id' => $id, 'reference_type' => 'income'), array('%s'), array('%d', '%s'));
+    $db->delete(
+        $table,
+        ['id' => $id],
+        ['%d']
+    );
+    $db->delete(
+        $cashbook_table,
+        ['fk_reference_id' => $id, 'reference_type' => 'income'],
+        ['%d', '%s']
+    );
     opa_flush_cache();
 
     wp_send_json_success(array('message' => __('Income deleted', 'obydullah-personal-accounting')));
@@ -227,14 +250,20 @@ function opa_save_expense($data) {
     $user = opa_user_id();
 
     if ($id > 0) {
-        $db->update($table, array(
-            'fk_wallet_id' => $wallet_id,
-            'amount' => $amount,
-            'description' => $description,
-            'currency' => $currency,
-            'updated_at' => $now,
-            'updated_by' => $user,
-        ), array('id' => $id), array('%d', '%f', '%s', '%s', '%s', '%d'), array('%d'));
+        $db->update(
+            $table,
+            [
+                'fk_wallet_id' => $wallet_id,
+                'amount'       => $amount,
+                'description'  => $description,
+                'currency'     => $currency,
+                'updated_at'   => $now,
+                'updated_by'   => $user,
+            ],
+            ['id' => $id],
+            ['%d', '%f', '%s', '%s', '%s', '%d'],
+            ['%d']
+        );
         opa_flush_cache();
         wp_send_json_success(array('message' => __('Expense updated', 'obydullah-personal-accounting')));
     } else {
@@ -269,10 +298,17 @@ function opa_delete_expense($data) {
     $table = opa_table('expenses');
     $cashbook_table = opa_table('cashbook');
     $id = absint($data['id'] ?? 0);
-    $now = opa_now();
 
-    $db->update($table, array('deleted_at' => $now), array('id' => $id), array('%s'), array('%d'));
-    $db->update($cashbook_table, array('deleted_at' => $now), array('fk_reference_id' => $id, 'reference_type' => 'expense'), array('%s'), array('%d', '%s'));
+    $db->delete(
+        $table,
+        ['id' => $id],
+        ['%d']
+    );
+    $db->delete(
+        $cashbook_table,
+        ['fk_reference_id' => $id, 'reference_type' => 'expense'],
+        ['%d', '%s']
+    );
     opa_flush_cache();
 
     wp_send_json_success(array('message' => __('Expense deleted', 'obydullah-personal-accounting')));
@@ -354,11 +390,17 @@ function opa_set_setting($name, $value) {
     );
 
     if ($id > 0) {
-        $db->update($table, array(
-            'setting'   => $setting,
-            'updated_at' => $now,
-            'updated_by' => $user,
-        ), array('id' => $id), array('%s', '%s', '%d'), array('%d'));
+        $db->update(
+            $table,
+            [
+                'setting'    => $setting,
+                'updated_at' => $now,
+                'updated_by' => $user,
+            ],
+            ['id' => $id],
+            ['%s', '%s', '%d'],
+            ['%d']
+        );
     } else {
         $db->insert($table, array(
             'name'       => $name,

@@ -11,7 +11,7 @@ function opa_register_menus() {
         'opa_dashboard',
         'opa_page_dashboard',
         'dashicons-money-alt',
-        30
+        100
     );
 
     add_submenu_page('opa_dashboard', __('Dashboard', 'obydullah-personal-accounting'), __('Dashboard', 'obydullah-personal-accounting'), 'manage_options', 'opa_dashboard', 'opa_page_dashboard');
