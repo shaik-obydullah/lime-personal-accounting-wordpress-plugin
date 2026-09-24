@@ -3,6 +3,7 @@
  * Plugin Name: Obydullah Personal Accounting
  * Plugin URI: https://obydullah.com/project/lime-personal-accounting-wordpress-plugin
  * Description: Track personal income, expenses, wallets, and automatic cashbook ledgers - all inside your WordPress admin.
+ * Version: 1.0.0
  * Author: Shaik Obydullah
  * Author URI: https://obydullah.com
  * Text Domain: obydullah-personal-accounting
