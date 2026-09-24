@@ -1,7 +1,7 @@
 <?php
 if (!defined('ABSPATH')) exit;
 ?>
-<div class="opa-wrap">
+<div class="opaac-wrap">
     <h1><?php esc_html_e('Cashbook', 'obydullah-personal-accounting'); ?></h1>
-    <div id="opa-cashbook-table"></div>
+    <div id="opaac-cashbook-table"></div>
 </div>

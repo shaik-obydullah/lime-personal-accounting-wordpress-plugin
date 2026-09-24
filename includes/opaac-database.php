@@ -1,16 +1,16 @@
 <?php
 if (!defined('ABSPATH')) exit;
 
-function opa_create_tables() {
+function opaac_create_tables() {
     global $wpdb;
     $charset = $wpdb->get_charset_collate();
 
-    $wallets = $wpdb->prefix . OPA_TABLE_PREFIX . 'wallets';
-    $incomes = $wpdb->prefix . OPA_TABLE_PREFIX . 'incomes';
-    $expenses = $wpdb->prefix . OPA_TABLE_PREFIX . 'expenses';
-    $cashbook = $wpdb->prefix . OPA_TABLE_PREFIX . 'cashbook';
-    $activities = $wpdb->prefix . OPA_TABLE_PREFIX . 'activities';
-    $configurations = $wpdb->prefix . OPA_TABLE_PREFIX . 'configurations';
+    $wallets = $wpdb->prefix . OPAAC_TABLE_PREFIX . 'wallets';
+    $incomes = $wpdb->prefix . OPAAC_TABLE_PREFIX . 'incomes';
+    $expenses = $wpdb->prefix . OPAAC_TABLE_PREFIX . 'expenses';
+    $cashbook = $wpdb->prefix . OPAAC_TABLE_PREFIX . 'cashbook';
+    $activities = $wpdb->prefix . OPAAC_TABLE_PREFIX . 'activities';
+    $configurations = $wpdb->prefix . OPAAC_TABLE_PREFIX . 'configurations';
 
     $sql = "CREATE TABLE $wallets (
         id bigint(20) NOT NULL AUTO_INCREMENT,
@@ -108,33 +108,33 @@ function opa_create_tables() {
     require_once ABSPATH . 'wp-admin/includes/upgrade.php';
     dbDelta($sql);
 
-    update_option('opa_db_version', OPA_VERSION);
+    update_option('opaac_db_version', OPAAC_VERSION);
 }
 
-function opa_db() {
+function opaac_db() {
     global $wpdb;
     return $wpdb;
 }
 
-function opa_table($name) {
+function opaac_table($name) {
     global $wpdb;
-    return $wpdb->prefix . 'opa_' . $name;
+    return $wpdb->prefix . 'opaac_' . $name;
 }
 
-function opa_now() {
+function opaac_now() {
     return current_time('mysql');
 }
 
-function opa_user_id() {
+function opaac_user_id() {
     return get_current_user_id();
 }
 
-function opa_cache_group() {
-    return 'opa_cache_' . opa_user_id();
+function opaac_cache_group() {
+    return 'opaac_cache_' . opaac_user_id();
 }
 
-function opa_flush_cache() {
-    $group = opa_cache_group();
+function opaac_flush_cache() {
+    $group = opaac_cache_group();
     wp_cache_delete('settings', $group);
     wp_cache_delete('summary', $group);
 }

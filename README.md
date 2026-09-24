@@ -37,8 +37,8 @@ A lightweight, self-hosted personal accounting plugin for WordPress. Track incom
 ### Deploy
 
 ```bash
-git clone https://github.com/obydullah/lime-opa-docker.git
-cd lime-opa-docker
+git clone https://github.com/obydullah/lime-opaac-docker.git
+cd lime-opaac-docker
 docker-compose up -d
 ```
 
@@ -61,7 +61,7 @@ docker-compose up -d
 
 ## Database Schema
 
-All tables use the `opa_` prefix and include soft-delete support (`deleted_at` column).
+All tables use the `opaac_` prefix and include soft-delete support (`deleted_at` column).
 
 ```
 ┌──────────────┐     ┌──────────────┐
@@ -91,12 +91,12 @@ All tables use the `opa_` prefix and include soft-delete support (`deleted_at` c
 
 | Table                | Purpose                   | Key Columns                           |
 | -------------------- | ------------------------- | ------------------------------------- |
-| `opa_wallets`        | Income/expense categories | name, category                        |
-| `opa_incomes`        | Income records            | fk_wallet_id, amount, currency        |
-| `opa_expenses`       | Expense records           | fk_wallet_id, amount, currency        |
-| `opa_cashbook`       | Auto-generated ledger     | in_amount, out_amount, reference_type |
-| `opa_activities`     | Audit trail               | type, name, ip_address                |
-| `opa_configurations` | Settings store            | name (unique), setting (JSON)         |
+| `opaac_wallets`        | Income/expense categories | name, category                        |
+| `opaac_incomes`        | Income records            | fk_wallet_id, amount, currency        |
+| `opaac_expenses`       | Expense records           | fk_wallet_id, amount, currency        |
+| `opaac_cashbook`       | Auto-generated ledger     | in_amount, out_amount, reference_type |
+| `opaac_activities`     | Audit trail               | type, name, ip_address                |
+| `opaac_configurations` | Settings store            | name (unique), setting (JSON)         |
 
 ---
 
@@ -115,7 +115,7 @@ All tables use the `opa_` prefix and include soft-delete support (`deleted_at` c
 
 ## API Actions
 
-All operations go through a single AJAX endpoint: `wp_ajax_opa_action`
+All operations go through a single AJAX endpoint: `wp_ajax_opaac_action`
 
 ### Wallets
 
@@ -165,7 +165,7 @@ All operations go through a single AJAX endpoint: `wp_ajax_opa_action`
 │       └──────────────┼─────────────┘                │
 │                      │                              │
 │              ┌───────┴────────┐                     │
-│              │   opa-script.js │  jQuery AJAX layer  │
+│              │   opaac-script.js │  jQuery AJAX layer  │
 │              │   (SPA-like)   │                     │
 │              └───────┬────────┘                     │
 │                      │                              │
@@ -209,8 +209,8 @@ wp-content/plugins/obydullah-personal-accounting/
 │       ├── activities.php
 │       └── settings.php
 └── assets/
-    ├── css/opa-style.css            # 400+ lines of custom CSS
-    └── js/opa-script.js            # 350+ lines of jQuery SPA
+    ├── css/opaac-style.css            # 400+ lines of custom CSS
+    └── js/opaac-script.js            # 350+ lines of jQuery SPA
 ```
 
 ### Making Changes
@@ -221,8 +221,8 @@ wp-content/plugins/obydullah-personal-accounting/
 
 ### Code Conventions
 
-- **PHP functions**: All prefixed with `opa_`
-- **CSS classes**: All prefixed with `opa-`
+- **PHP functions**: All prefixed with `opaac_`
+- **CSS classes**: All prefixed with `opaac-`
 - **JS functions**: Exposed on `window` for inline handlers
 - **Security**: Every AJAX call requires nonce + `manage_options` capability
 - **DB access**: Always via `$wpdb` API (never raw PDO)
@@ -232,9 +232,9 @@ wp-content/plugins/obydullah-personal-accounting/
 
 1. Add DB columns in `database.php` (use `dbDelta()`)
 2. Add AJAX handler in `ajax-handlers.php`
-3. Add router case in `opa_ajax_router()`
+3. Add router case in `opaac_ajax_router()`
 4. Create/update view in `includes/views/`
-5. Add JS functions in `opa-script.js`
+5. Add JS functions in `opaac-script.js`
 6. Register menu in `admin-menu.php` (if new page)
 
 ---
