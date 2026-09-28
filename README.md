@@ -11,6 +11,8 @@ A lightweight, self-hosted personal accounting plugin for WordPress. Track incom
 
 [Features](#features) · [Quick Start](#quick-start) · [Database](#database-schema) · [API](#api-actions) · [Development](#development) · [License](#license)
 
+[![Download from WordPress.org](https://img.shields.io/badge/Download-WordPress.org-21759b?logo=wordpress&logoColor=white)](https://wordpress.org/plugins/obydullah-personal-accounting/)
+
 ---
 
 ## Features
