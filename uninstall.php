@@ -4,8 +4,8 @@ if (!defined('WP_UNINSTALL_PLUGIN')) {
 }
 
 global $wpdb;
-$tables = array('wallets', 'incomes', 'expenses', 'cashbook', 'activities', 'configurations');
-foreach ($tables as $table) {
-    $wpdb->query('DROP TABLE IF EXISTS `' . $wpdb->prefix . 'opaac_' . $table . '`'); // phpcs:ignore WordPress.DB
+$opaac_tables = array('wallets', 'incomes', 'expenses', 'cashbook', 'activities', 'configurations');
+foreach ($opaac_tables as $opaac_table) {
+    $wpdb->query('DROP TABLE IF EXISTS `' . $wpdb->prefix . 'opaac_' . $opaac_table . '`'); // phpcs:ignore WordPress.DB
 }
 delete_option('opaac_db_version');

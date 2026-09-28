@@ -454,14 +454,14 @@
     color: #fff;
     z-index: 999999;
     transform: translateY(20px);
-    opaaccity: 0;
+    opacity: 0;
     transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
     box-shadow: 0 12px 32px rgba(15, 23, 42, 0.25);
 }
 
 .opaac-toast-show {
     transform: translateY(0);
-    opaaccity: 1;
+    opacity: 1;
 }
 
 .opaac-toast-success {
@@ -618,22 +618,22 @@
 /* --- Animations --- */
 @keyframes opaacFadeUp {
     from {
-        opaaccity: 0;
+        opacity: 0;
         transform: translateY(14px);
     }
     to {
-        opaaccity: 1;
+        opacity: 1;
         transform: translateY(0);
     }
 }
 
 @keyframes opaacPop {
     from {
-        opaaccity: 0;
+        opacity: 0;
         transform: scale(0.94) translateY(8px);
     }
     to {
-        opaaccity: 1;
+        opacity: 1;
         transform: scale(1) translateY(0);
     }
 }
